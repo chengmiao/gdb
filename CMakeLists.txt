@@ -28,8 +28,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-#add_subdirectory(libs/fmt)
-add_subdirectory(libs/fmt EXCLUDE_FROM_ALL)
+add_subdirectory(libs/fmt)
+#add_subdirectory(libs/fmt EXCLUDE_FROM_ALL)
 
 
 #link_libraries(curl)
