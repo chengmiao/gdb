@@ -25,3 +25,12 @@ the prototype of the api is borrowed from php library laravel.
 
 
 
+
+
+# build it 
+
+git submodule init 
+git submodule update 
+cmake . 
+make 
+
