@@ -19,7 +19,7 @@ with this line above , it executes  a sql :
 
 more sql syntax need to be implemented.  It's complicate to work on the sql grammar, if you can help, help me finished. 
 
-the prototype of the api is borrowed from php library laravel. 
+the prototype of the api is borrowed from  Eloquent ORM in  php library laravel. 
 
 
 
@@ -29,8 +29,8 @@ the prototype of the api is borrowed from php library laravel.
 
 # build it 
 
-git submodule init 
-git submodule update 
-cmake . 
-make 
+git submodule init   <br> 
+git submodule update   <br> 
+cmake .   <br> 
+make   <br>
 
