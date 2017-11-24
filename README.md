@@ -13,7 +13,7 @@ myConn.db("mysql").table("test").select ( "name", "sex","age" ).where(" id ", "=
             }); 
 
 
-with this line above , will execute a sql : 
+with this line above , it executes  a sql : 
 "select  name,  sex,  age  from test where   id  = 1   and name = "test"  order by id asc" 
 
 
