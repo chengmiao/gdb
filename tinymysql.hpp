@@ -37,7 +37,7 @@ class TinyMysql
         typedef std::shared_ptr<sql::Connection > ConnectionPtr; 
         typedef std::function<void(sql::ResultSet &) > ResultFunc; 
 
-        TinyMysql(const std::string & host,int port ,const std::string & user,const std::string & passwd)
+        TinyMysql(const std::string & host,int port ,const std::string & user,const std::string & passwd, const std::string& dbName = "")
         {
             m_driver = get_driver_instance();
             //for(int i=0;i < MAX_CONN_COUNT ;i ++)
@@ -46,6 +46,11 @@ class TinyMysql
                 if (m_conn->isValid())
                 {
                     std::cout << "connect to db success" << std::endl; 
+
+		    if (!dbName.empty()) 
+		    {
+			this->db(dbName); 
+		    }
                 }
             }
         }
@@ -60,8 +65,158 @@ class TinyMysql
         }
 
         template <typename ... Args>
+            TinyMysql & insert(const Args & ... args) 
+            {
+		clear(); 
+		int argLen = sizeof ...(Args); 
+		m_sql << " insert into " << m_table ; 
+
+		if (argLen > 0 )
+		{
+		    m_sql << "( "; 
+		}
+		fmt::MemoryWriter format; 
+		for (int i  = 0; i   < argLen  ; i++)
+		{
+		    if (i < argLen -1 )
+		    {
+			format<< " {}, "; 
+		    }
+		    else {
+			format<< " {} "; 
+		    }
+		}
+		//std::cout << "format is " << format.c_str() << std::endl; 
+		m_sql.write(format.c_str(),args...); 
+		if (argLen > 0)
+		{
+		    m_sql.write(" )  " ); 
+		}
+
+		return *this; 
+	    }
+
+        template <typename ... Args>
+            TinyMysql & update (const Args & ... args) 
+            {
+		clear(); 
+		int argLen = sizeof ...(Args); 
+		m_sql << " update " << m_table ; 
+
+		fmt::MemoryWriter format; 
+		for (int i  = 0; i   < argLen  ; i++)
+		{
+		    if (i < argLen -1 )
+		    {
+			format<< " {}, "; 
+		    }
+		    else {
+			format<< " {} "; 
+		    }
+		}
+		//std::cout << "format is " << format.c_str() << std::endl; 
+		m_sql.write(format.c_str(),args...); 
+
+		return *this; 
+	    }
+
+
+
+	template<class T> 
+	TinyMysql& set(const std::string & key, T val )
+	{
+	    fmt::MemoryWriter termStr; 
+	    termStr.write(" {} = {} ", key ,  val);  
+            sets.push_back(termStr.c_str()); 
+	    if (sets.size() <= 1)
+	    {
+		m_sql << " set " << termStr.c_str(); 
+	    }
+	    else {
+		m_sql << " ," << termStr.c_str(); 
+	    }
+
+	    return *this; 
+	}
+
+	TinyMysql & del()
+	{
+	    clear(); 
+	    m_sql << "delete  from " << m_table  ; 
+	    return *this; 
+	}
+
+	TinyMysql& set(const std::string & key, const char *  val)
+	{
+	    return this->set(key,std::string(val)); 
+	}
+	TinyMysql& set(const std::string & key, const std::string & val)
+	{
+	    fmt::MemoryWriter termStr; 
+	    termStr.write(" {} = \"{}\" ", key ,  val);  
+            sets.push_back(termStr.c_str()); 
+	    if (sets.size() <= 1)
+	    {
+		m_sql << " set " << termStr.c_str(); 
+	    }
+	    else {
+		m_sql << " ," << termStr.c_str(); 
+	    }
+
+	    return *this; 
+	}
+	
+	template <class T>
+	    std::string printarg(T t)
+	    {
+		fmt::MemoryWriter val ;
+		val << t ; 
+		return val.c_str() ; 
+	    }
+		
+	    
+
+	    std::string printarg(const char *  t)
+	    {
+		return std::string("\"") +t +"\""; 
+	    }
+	
+	    std::string printarg(const std::string& t )
+	    {
+		return std::string("\"") +t +"\""; 
+	    }
+
+
+
+        template <typename ... Args>
+            TinyMysql & values(const Args & ... args) 
+            {
+		int argLen = sizeof ...(Args); 
+		m_sql << " values " << " ( "  ; 
+
+		fmt::MemoryWriter format; 
+		for (int i  = 0; i   < argLen  ; i++)
+		{
+		    if (i < argLen -1 )
+		    {
+			format<< " {}, "; 
+		    }
+		    else {
+			format<< " {} "; 
+		    }
+		}
+		//std::cout << "format is " << format.c_str() << std::endl; 
+		m_sql.write(format.c_str(),printarg(args)...); 
+		m_sql.write(" )  " ); 
+		return *this; 
+	    }
+
+
+
+        template <typename ... Args>
             TinyMysql & select(const Args & ... args) 
             {
+		clear(); 
                 int argLen = sizeof ...(Args); 
                 m_sql << "select " ; 
 
@@ -83,6 +238,7 @@ class TinyMysql
             }
         TinyMysql & select(const std::string & selData)
         {
+		clear(); 
             m_sql.write("select {} from {} ",selData,m_table ); 
             return *this; 
         }
@@ -93,6 +249,10 @@ class TinyMysql
             return *this; 
         }
 
+        TinyMysql & where(const std::string & key ,  const char * term )
+	{
+	    return this->where(key,"=",term); 
+	}
         TinyMysql & where(const std::string & key , const std::string & op, const char * term )
         {
             return where(key,op,std::string(term)); 
@@ -116,6 +276,14 @@ class TinyMysql
                 m_sql.write( wheres.size() > 1 ?" and  {} ":"where {} " , term ); 
                 return *this; 
             }
+
+
+        template <typename T> 
+        TinyMysql & where(const std::string & key ,  T   term)
+	{
+	    return where<T>(key,"=",term); 
+	}
+
         template <typename T> 
         TinyMysql & where(const std::string & key , const std::string & op, T   term)
         {
@@ -139,7 +307,6 @@ class TinyMysql
 
         TinyMysql & limit( unsigned int count)
         {
-
             m_sql.write(" limit {} " ,count); 
 
             return *this; 
@@ -210,14 +377,23 @@ class TinyMysql
             return m_sql.c_str(); 
         }
 
-
-        int execute(const std::string & sql)
+        int execute()
         {
+	    std::cout << "exectue:" << sql() << std::endl; 
             sql::Statement *stmt =  m_conn->createStatement();
             int ret = stmt->execute(m_sql.c_str()); 
             delete stmt; 
             return ret; 
         }
+
+
+
+	void clear()
+	{
+	    m_sql.clear(); 
+	    wheres.clear(); 
+	    sets.clear(); 
+	}
 
 
     private:
@@ -226,6 +402,7 @@ class TinyMysql
         sql::Connection * m_conn; 
 
         std::vector<std::string > wheres; 
+        std::vector<std::string > sets ; 
         std::string m_db; 
         std::string  m_table; 
         std::vector<std::shared_ptr<sql::Connection > >  m_connPool; 
