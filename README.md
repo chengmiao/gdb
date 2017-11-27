@@ -1,4 +1,4 @@
-# tinymysql
+# tinydb 
 
 
 try to implement a very simple ,easy to use mysql client c++ lib . 
