@@ -19,7 +19,6 @@ with this line above , it executes  a sql :
 
 more sql syntax need to be implemented.  It's complicate to work on the sql grammar, if you can help, help me finished. 
 
-the prototype of the api is borrowed from  Eloquent ORM in  php library laravel. 
 
 
 
