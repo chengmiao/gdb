@@ -82,12 +82,21 @@ class TinyMysql
             delete stmt; 
             delete res; 
         }
+        void get( ResultFunc func)
+	{
+	    return get(m_queue,func); 
+	}
         
         Row  first(DBQueue & queue ){
             sql::Statement * stmt = m_conn->createStatement();
             sql::ResultSet * res  = stmt->executeQuery(queue.sql()); 
             return Row(ResultSetSPtr(res )); 
         }
+
+        Row  first(){
+	    return first(m_queue); 
+	}
+
 
 
 
@@ -99,10 +108,19 @@ class TinyMysql
             delete stmt; 
             return ret; 
         }
+	int execute()
+	{
+	    return execute(m_queue); 
+	}
 
+	DBQueue & queue()
+	{
+	    return m_queue; 
+	}
 
 
     private:
+	DBQueue m_queue ; 
         sql::Driver *m_driver;
         sql::Connection * m_conn; 
         std::string m_db; 
