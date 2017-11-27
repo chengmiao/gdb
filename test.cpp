@@ -13,13 +13,14 @@
 int main()
 {
 
-    TinyMysql  myConn("127.0.0.1",3306,"root","Hello123","tinydb"); 
+    TinyMysql  tinydb("127.0.0.1",3306,"root","Hello123","tinydb"); 
 
-    //std::cout << myConn.table("test").select ( "* ").where(" id ", "=", 1).where("name","=","test").order_by("id").get() << std::endl; 
-    //std::cout << myConn.db("mysql").table("test").select ( "name", "sex","age" ).where(" id ", "=", 1).where("name","=","test").order_by("id").group_by("id").sql() ; 
-//    std::cout << myConn.db("mysql").table("test").select ( "name", "sex","age" ).where(" id ", "=", 1).where("name","=","test").order_by("id").sql() ; 
+    DBQueue queue; 
+    //std::cout << tinydb.table("test").select ( "* ").where(" id ", "=", 1).where("name","=","test").order_by("id").get() << std::endl; 
+    //std::cout << tinydb.db("mysql").table("test").select ( "name", "sex","age" ).where(" id ", "=", 1).where("name","=","test").order_by("id").group_by("id").sql() ; 
+//    std::cout << tinydb.db("mysql").table("test").select ( "name", "sex","age" ).where(" id ", "=", 1).where("name","=","test").order_by("id").sql() ; 
 
- //   myConn.get([](sql::ResultSet & ){
+ //   tinydb.get([](sql::ResultSet & ){
 
 
  //           }); 
@@ -28,16 +29,16 @@ int main()
     {
 	fmt::MemoryWriter name ; 
 	name << "test" << i ; 
-	TinyMysql & queue = myConn.table("users").insert("name", "age","sex","phone","address").values( name.c_str() ,20+i,1,"18930878762","shanghai"); 
+	queue.table("users").insert("name", "age","sex","phone","address").values( name.c_str() ,20+i,1,"18930878762","shanghai"); 
 	//std::cout << queue.sql() << std::endl; 
+	tinydb.execute(queue); 
 
-	queue.execute(); 
     }
 
-    //std::cout << myConn.table("users").update().set("phone","8888888").where("name","arthur").sql(); 
-    TinyMysql& queue = myConn.table("users").update().set("phone","8888888").where("name","arthur"); 
+    //std::cout << tinydb.table("users").update().set("phone","8888888").where("name","arthur").sql(); 
+    queue.table("users").update().set("phone","8888888").where("name","arthur"); 
 
-    queue.execute(); 
+    tinydb.execute(queue); 
 
 
 
@@ -47,7 +48,7 @@ int main()
 	fmt::MemoryWriter name ; 
 	name << "test" << i ; 
 	queue.del().where("name" ,name.c_str()); 
-	queue.execute(); 
+	tinydb.execute(queue); 
     }
 
 
