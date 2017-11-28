@@ -38,7 +38,7 @@ class TinyDB
         typedef std::shared_ptr<sql::Connection > ConnectionPtr; 
         typedef std::function<void(sql::ResultSet &) > ResultFunc; 
 
-        TinyMysql(const std::string & host,int port ,const std::string & user,const std::string & passwd, const std::string& dbName = "")
+        TinyDB(const std::string & host,int port ,const std::string & user,const std::string & passwd, const std::string& dbName = "")
         {
             m_driver = get_driver_instance();
             //for(int i=0;i < MAX_CONN_COUNT ;i ++)
