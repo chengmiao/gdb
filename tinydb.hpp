@@ -113,27 +113,49 @@ class TinyDB
         {
             if (m_default) 
             {
-                m_default->connection->setSchema(dbName); 
+                try {
+                    m_default->connection->setSchema(dbName); 
+                }
+                catch (const sql::SQLException & e)
+                {
+                    std::cout << " exception " << std::endl; 
+                }
             }
             return *this; 
         }
 
         ResultSetUPtr  get(DBQueue & queue){
-            sql::Statement * stmt = m_default->connection->createStatement();
-            sql::ResultSet  *res  = stmt->executeQuery(queue.sql()); 
+            if (is_valid())
+            {
+                sql::Statement * stmt = m_default->connection->createStatement();
+                sql::ResultSet  *res  = stmt->executeQuery(queue.sql()); 
 
-            delete stmt; 
-            return ResultSetUPtr(res); 
+                delete stmt; 
+                return ResultSetUPtr(res); 
+            }
+            return nullptr; 
+        }
+        bool is_valid()
+        {
+
+            if (m_default && m_default->connection != nullptr)
+            {
+                return m_default->connection->isValid(); 
+            }
+            return false; 
         }
 
 
         void get(DBQueue& queue , ResultFunc func)
         {
-            sql::Statement * stmt = m_default->connection->createStatement();
-            sql::ResultSet  *res  = stmt->executeQuery(queue.sql()); 
-            func(*res); 
-            delete stmt; 
-            delete res; 
+            if (is_valid())
+            {
+                sql::Statement * stmt = m_default->connection->createStatement();
+                sql::ResultSet  *res  = stmt->executeQuery(queue.sql()); 
+                func(*res); 
+                delete stmt; 
+                delete res; 
+            }
         }
         void get( ResultFunc func)
         {
@@ -141,9 +163,13 @@ class TinyDB
         }
 
         Row  first(DBQueue & queue ){
-            sql::Statement * stmt = m_default->connection->createStatement();
-            sql::ResultSet * res  = stmt->executeQuery(queue.sql()); 
-            return Row(ResultSetSPtr(res )); 
+            if (is_valid())
+            {
+                sql::Statement * stmt = m_default->connection->createStatement();
+                sql::ResultSet * res  = stmt->executeQuery(queue.sql()); 
+                return Row(ResultSetSPtr(res )); 
+            }
+            return Row(nullptr); 
         }
 
         Row  first(){
@@ -155,11 +181,15 @@ class TinyDB
 
         int execute(const DBQueue & queue)
         {
-            std::cout << "exectue:" << queue.sql() << std::endl; 
-            sql::Statement *stmt =  m_default->connection->createStatement();
-            int ret = stmt->execute(queue.sql()); 
-            delete stmt; 
-            return ret; 
+            if (is_valid())
+            {
+                std::cout << "exectue:" << queue.sql() << std::endl; 
+                sql::Statement *stmt =  m_default->connection->createStatement();
+                int ret = stmt->execute(queue.sql()); 
+                delete stmt; 
+                return ret; 
+            }
+            return -1; 
         }
         int execute()
         {
