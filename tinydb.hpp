@@ -33,23 +33,30 @@
 #define MAX_CONN_COUNT 8
 struct DBConfig
 {
-    DBConfig(const char * h = "127.0.0.1", int pt = 3306,const char *u = "root",const char * p  = "",const char  * n = "default")
+    DBConfig(const std::string & h = "127.0.0.1", 
+            int pt = 3306,
+            const std::string & u = "root",
+            const std::string & p = "",
+            const std::string & n = "default")
     {
-        strcpy(host,h); 
-        port = pt; 
-        strcpy(user,u); 
-        strcpy(pass,p); 
-        strcpy(name,n); 
+        name = n; 
+        host = h; 
+        port =pt; 
 
+        user = u; 
+        pass = p; 
+
+        pool_size = 1; 
         connection = nullptr; 
     }
 
-    char name[64];//unique db name  
-    char host[64]; 
-    int  port; 
-    char user[64] ; 
-    char pass[64] ; 
+    std::string name; 
+    std::string host;
+    int port; 
+    std::string user; 
+    std::string pass; 
     sql::Connection * connection; 
+    int pool_size; 
 }; 
 
 class TinyDB 
@@ -64,7 +71,7 @@ class TinyDB
                 const std::string & user = "root",
                 const std::string & passwd = "", const std::string& db = "",const std::string &name="default")
         {
-            m_configs[name] = DBConfigPtr(new  DBConfig(host.c_str(),port,user.c_str(),passwd.c_str())); 
+            m_configs[name] = DBConfigPtr(new  DBConfig(host,port,user,passwd,name)); 
         }
         void add(const std::string & name, 
                 const std::string & host ="127.0.0.1",
@@ -72,44 +79,47 @@ class TinyDB
                 const std::string & user = "root",
                 const std::string & passwd = "")
         {
-            m_configs[name] = DBConfigPtr(new  DBConfig(host.c_str(),port,user.c_str(),passwd.c_str())); 
+            m_configs[name] = DBConfigPtr(new  DBConfig(host,port,user,passwd,name)); 
         }
 
         void init(const char * db = nullptr)
         {
-
             m_driver = get_driver_instance();
             for(auto cfg:m_configs) 
             {
-                DBConfigPtr dbCfg = cfg.second; 
-                fmt::MemoryWriter addr ;
-                addr<<"tcp://"<< dbCfg->host<< ":"<< dbCfg->port; 
-                m_conn =  m_driver->connect(addr.c_str(), dbCfg->user, dbCfg->pass) ;
-                if (m_conn->isValid())
+                DBConfigPtr dbInfo = cfg.second; 
+                if (dbInfo->name == "default" )
                 {
-                    dbCfg->connection = m_conn; 
+                    m_default = dbInfo; 
+                }
+                fmt::MemoryWriter addr ;
+                addr<<"tcp://"<< dbInfo->host<< ":"<< dbInfo->port; 
+                sql::Connection * conn =  m_driver->connect(addr.c_str(), dbInfo->user, dbInfo->pass) ;
+                if (conn->isValid())
+                {
+                    dbInfo->connection = conn; 
                     std::cout << "connect to db success" << std::endl; 
 
                     if (db != nullptr) 
                     {
-                        this->db(db); 
+                        this->usedb(db); 
                     }
                 }
             }
 
         }
 
-        TinyDB & db(const std::string & dbName)
+        TinyDB & usedb(const std::string & dbName)
         {
-            if (m_conn) 
+            if (m_default) 
             {
-                m_conn->setSchema(dbName); 
+                m_default->connection->setSchema(dbName); 
             }
             return *this; 
         }
 
         ResultSetUPtr  get(DBQueue & queue){
-            sql::Statement * stmt = m_conn->createStatement();
+            sql::Statement * stmt = m_default->connection->createStatement();
             sql::ResultSet  *res  = stmt->executeQuery(queue.sql()); 
 
             delete stmt; 
@@ -119,7 +129,7 @@ class TinyDB
 
         void get(DBQueue& queue , ResultFunc func)
         {
-            sql::Statement * stmt = m_conn->createStatement();
+            sql::Statement * stmt = m_default->connection->createStatement();
             sql::ResultSet  *res  = stmt->executeQuery(queue.sql()); 
             func(*res); 
             delete stmt; 
@@ -131,7 +141,7 @@ class TinyDB
         }
 
         Row  first(DBQueue & queue ){
-            sql::Statement * stmt = m_conn->createStatement();
+            sql::Statement * stmt = m_default->connection->createStatement();
             sql::ResultSet * res  = stmt->executeQuery(queue.sql()); 
             return Row(ResultSetSPtr(res )); 
         }
@@ -146,7 +156,7 @@ class TinyDB
         int execute(const DBQueue & queue)
         {
             std::cout << "exectue:" << queue.sql() << std::endl; 
-            sql::Statement *stmt =  m_conn->createStatement();
+            sql::Statement *stmt =  m_default->connection->createStatement();
             int ret = stmt->execute(queue.sql()); 
             delete stmt; 
             return ret; 
@@ -166,6 +176,6 @@ class TinyDB
         std::map<std::string ,DBConfigPtr> m_configs; 
         DBQueue m_queue ; 
         sql::Driver *m_driver;
-        sql::Connection * m_conn; 
+        DBConfigPtr m_default; 
         std::vector<std::shared_ptr<sql::Connection > >  m_connPool; 
 }; 
