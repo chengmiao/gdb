@@ -118,7 +118,7 @@ class TinyDB
                 }
                 catch (const sql::SQLException & e)
                 {
-                    std::cout << " exception " << std::endl; 
+                    std::cout << " exception :" << e.what() << std::endl; 
                 }
             }
             return *this; 
@@ -127,11 +127,18 @@ class TinyDB
         ResultSetUPtr  get(DBQueue & queue){
             if (is_valid())
             {
+                try { 
                 sql::Statement * stmt = m_default->connection->createStatement();
                 sql::ResultSet  *res  = stmt->executeQuery(queue.sql()); 
 
                 delete stmt; 
                 return ResultSetUPtr(res); 
+                } 
+                catch (const sql::SQLException & e)
+                {
+
+                    std::cout << " exception :" << e.what() << std::endl; 
+                }
             }
             return nullptr; 
         }
@@ -184,10 +191,18 @@ class TinyDB
             if (is_valid())
             {
                 std::cout << "exectue:" << queue.sql() << std::endl; 
+                try{
                 sql::Statement *stmt =  m_default->connection->createStatement();
                 int ret = stmt->execute(queue.sql()); 
                 delete stmt; 
+
                 return ret; 
+
+                }
+                catch (const sql::SQLException & e)
+                {
+                    std::cout << "execute sql failed : " << e.what() << std::endl; 
+                }
             }
             return -1; 
         }
