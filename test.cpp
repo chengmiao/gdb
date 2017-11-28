@@ -14,6 +14,7 @@ int main()
 {
 
     TinyDB  tinydb("127.0.0.1",3306,"root","Hello123"); 
+    tinydb.init("tinydb"); 
 
 	DBQueue queue; 
 	//std::cout << tinydb.table("test").select ( "* ").where(" id ", "=", 1).where("name","=","test").order_by("id").get() << std::endl; 

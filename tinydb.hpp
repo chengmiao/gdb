@@ -42,6 +42,7 @@ struct DBConfig
 
     }
 
+    char name[64];//unique db name  
     char host[64]; 
     int  port; 
     char user[64] ; 
