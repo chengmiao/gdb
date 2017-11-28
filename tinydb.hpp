@@ -33,13 +33,15 @@
 #define MAX_CONN_COUNT 8
 struct DBConfig
 {
-    DBConfig(const char * h, int pt,const char *u,const char * p )
+    DBConfig(const char * h = "127.0.0.1", int pt = 3306,const char *u = "root",const char * p  = "",const char  * n = "default")
     {
         strcpy(host,h); 
         port = pt; 
         strcpy(user,u); 
         strcpy(pass,p); 
+        strcpy(name,n); 
 
+        connection = nullptr; 
     }
 
     char name[64];//unique db name  
@@ -47,21 +49,30 @@ struct DBConfig
     int  port; 
     char user[64] ; 
     char pass[64] ; 
+    sql::Connection * connection; 
 }; 
 
 class TinyDB 
 {
     public:
+        typedef std::shared_ptr<DBConfig> DBConfigPtr; 
         typedef std::shared_ptr<sql::Connection > ConnectionPtr; 
         typedef std::function<void(sql::ResultSet &) > ResultFunc; 
 
         TinyDB(const std::string & host ="127.0.0.1",
                 int port = 3316,
                 const std::string & user = "root",
-                const std::string & passwd = "", const std::string& db = "")
+                const std::string & passwd = "", const std::string& db = "",const std::string &name="default")
         {
-
-            m_configs.push_back(DBConfig(host.c_str(),port,user.c_str(),passwd.c_str())); 
+            m_configs[name] = DBConfigPtr(new  DBConfig(host.c_str(),port,user.c_str(),passwd.c_str())); 
+        }
+        void add(const std::string & name, 
+                const std::string & host ="127.0.0.1",
+                int port = 3306,
+                const std::string & user = "root",
+                const std::string & passwd = "")
+        {
+            m_configs[name] = DBConfigPtr(new  DBConfig(host.c_str(),port,user.c_str(),passwd.c_str())); 
         }
 
         void init(const char * db = nullptr)
@@ -70,11 +81,13 @@ class TinyDB
             m_driver = get_driver_instance();
             for(auto cfg:m_configs) 
             {
+                DBConfigPtr dbCfg = cfg.second; 
                 fmt::MemoryWriter addr ;
-                addr<<"tcp://"<< cfg.host<< ":"<< cfg.port; 
-                m_conn =  m_driver->connect(addr.c_str(), cfg.user, cfg.pass) ;
+                addr<<"tcp://"<< dbCfg->host<< ":"<< dbCfg->port; 
+                m_conn =  m_driver->connect(addr.c_str(), dbCfg->user, dbCfg->pass) ;
                 if (m_conn->isValid())
                 {
+                    dbCfg->connection = m_conn; 
                     std::cout << "connect to db success" << std::endl; 
 
                     if (db != nullptr) 
@@ -88,7 +101,6 @@ class TinyDB
 
         TinyDB & db(const std::string & dbName)
         {
-            m_db = dbName; 
             if (m_conn) 
             {
                 m_conn->setSchema(dbName); 
@@ -151,10 +163,9 @@ class TinyDB
 
 
     private:
-        std::vector<DBConfig> m_configs; 
+        std::map<std::string ,DBConfigPtr> m_configs; 
         DBQueue m_queue ; 
         sql::Driver *m_driver;
         sql::Connection * m_conn; 
-        std::string m_db; 
         std::vector<std::shared_ptr<sql::Connection > >  m_connPool; 
 }; 
