@@ -31,13 +31,13 @@
 
 #define MAX_CONN_COUNT 8
 
-class TinyMysql 
+class TinyDB 
 {
     public:
         typedef std::shared_ptr<sql::Connection > ConnectionPtr; 
         typedef std::function<void(sql::ResultSet &) > ResultFunc; 
 
-        TinyMysql(const std::string & host,int port ,const std::string & user,const std::string & passwd)
+        TinyDB(const std::string & host,int port ,const std::string & user,const std::string & passwd)
         {
             m_driver = get_driver_instance();
             //for(int i=0;i < MAX_CONN_COUNT ;i ++)
@@ -49,7 +49,7 @@ class TinyMysql
                 }
             }
         }
-        TinyMysql & db(const std::string & dbName)
+        TinyDB & db(const std::string & dbName)
         {
             m_db = dbName; 
             if (m_conn) 
@@ -60,7 +60,7 @@ class TinyMysql
         }
 
         template <typename ... Args>
-            TinyMysql & select(const Args & ... args) 
+            TinyDB & select(const Args & ... args) 
             {
                 int argLen = sizeof ...(Args); 
                 m_sql << "select " ; 
@@ -81,23 +81,23 @@ class TinyMysql
                 m_sql.write(" from {} " , m_table); 
                 return *this; 
             }
-        TinyMysql & select(const std::string & selData)
+        TinyDB & select(const std::string & selData)
         {
             m_sql.write("select {} from {} ",selData,m_table ); 
             return *this; 
         }
 
-        TinyMysql & table(const std::string & tbName)
+        TinyDB & table(const std::string & tbName)
         {
             m_table = tbName; 
             return *this; 
         }
 
-        TinyMysql & where(const std::string & key , const std::string & op, const char * term )
+        TinyDB & where(const std::string & key , const std::string & op, const char * term )
         {
             return where(key,op,std::string(term)); 
         }
-        TinyMysql & where(const std::string & key , const std::string & op, const std::string & term)
+        TinyDB & where(const std::string & key , const std::string & op, const std::string & term)
         {
             fmt::MemoryWriter termStr; 
             termStr.write("{} {} \"{}\"", key , op, term);  
@@ -107,7 +107,7 @@ class TinyMysql
             return *this; 
         }
         template <typename T> 
-            TinyMysql & where(T term)
+            TinyDB & where(T term)
             {
                 fmt::MemoryWriter termStr; 
                 termStr.write(" {} ",  term);  
@@ -117,7 +117,7 @@ class TinyMysql
                 return *this; 
             }
         template <typename T> 
-        TinyMysql & where(const std::string & key , const std::string & op, T   term)
+        TinyDB & where(const std::string & key , const std::string & op, T   term)
         {
             fmt::MemoryWriter termStr; 
             termStr.write(" {} {} {} ", key , op, term);  
@@ -128,7 +128,7 @@ class TinyMysql
         }
 
         template<typename T> 
-        TinyMysql & or_where(const std::string & key ,const std::string & op , T  term)
+        TinyDB & or_where(const std::string & key ,const std::string & op , T  term)
         {
             fmt::MemoryWriter termStr; 
             termStr.write(" {} {} {} ", key , op, term);  
@@ -137,44 +137,44 @@ class TinyMysql
             return *this; 
         }
 
-        TinyMysql & limit( unsigned int count)
+        TinyDB & limit( unsigned int count)
         {
 
             m_sql.write(" limit {} " ,count); 
 
             return *this; 
         }
-        TinyMysql & limit(unsigned int offset , unsigned int count)
+        TinyDB & limit(unsigned int offset , unsigned int count)
         {
 
             m_sql.write(" limit {}, {}  " ,offset , count); 
             return *this; 
         }
-        TinyMysql & group_by (const std::string & col)
+        TinyDB & group_by (const std::string & col)
         {
             m_sql.write(" group by {} " ,col); 
             return *this; 
         }
 
 
-        TinyMysql & order_by(const std::string & col, const std::string & type = "asc" )
+        TinyDB & order_by(const std::string & col, const std::string & type = "asc" )
         {
             m_sql.write(" order by {} {} " ,col,type ); 
             return *this; 
         }
 
-        TinyMysql & join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
+        TinyDB & join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
         {
             return left_join(tb,lId,op,rId); 
         }
 
-        TinyMysql & left_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
+        TinyDB & left_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
         {
             m_sql.write(" left join {} on  {} {}  {} " ,tb, lId,op,rId); 
             return *this; 
         }
 
-        TinyMysql & right_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
+        TinyDB & right_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
         {
             m_sql.write(" left join {} on  {} {}  {} " ,tb, lId,op,rId); 
             return *this; 
