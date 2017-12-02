@@ -8,12 +8,13 @@
 
 
 #include <iostream>
-#include "tinydb.hpp"
+#include "gdb.hpp"
 
+using namespace gdp::db; 
 int main()
 {
 
-    TinyDB  tinydb("127.0.0.1",3306,"root","Hello123"); 
+    GDatabase  tinydb("127.0.0.1",3306,"root","Hello123"); 
     tinydb.init("tinydb"); 
 
 	DBQueue queue; 

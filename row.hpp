@@ -2,16 +2,25 @@
 
 
 
-
-class Row
+namespace gdp
 {
-    public:
-       Row(ResultSetSPtr pRes):resultSet(pRes)
-       {
-
-       }
+    namespace db{
 
 
-    private:
-       ResultSetSPtr  resultSet; 
-}; 
+
+        class Row
+        {
+            public:
+                Row(ResultSetSPtr pRes):resultSet(pRes)
+            {
+
+            }
+
+
+            private:
+                ResultSetSPtr  resultSet; 
+        }; 
+
+
+    }
+}
