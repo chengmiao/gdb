@@ -63,14 +63,14 @@ namespace gdp
             int pool_size; 
         }; 
 
-        class GDatabase 
+        class GDb 
         {
             public:
                 typedef std::shared_ptr<DBConfig> DBConfigPtr; 
                 typedef std::shared_ptr<sql::Connection > ConnectionPtr; 
                 typedef std::function<void(sql::ResultSet &) > ResultFunc; 
 
-                GDatabase(const std::string & host ="127.0.0.1",
+                GDb(const std::string & host ="127.0.0.1",
                         int port = 3316,
                         const std::string & user = "root",
                         const std::string & passwd = "", const std::string& db = "",const std::string &name="default")
@@ -115,7 +115,7 @@ namespace gdp
 
                 }
 
-                GDatabase & usedb(const std::string & dbName)
+                GDb & usedb(const std::string & dbName)
                 {
                     if (m_default) 
                     {
