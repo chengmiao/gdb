@@ -11,7 +11,6 @@
 
 
     ```cpp
-
     GDb db("127.0.0.1",3306,"root","passwd","tinydb"); //声明一个数据库实例
     DBQueue queue; 
     queue.table("users").insert("name", "age","sex","phone","address").values( name.c_str() ,
