@@ -18,7 +18,6 @@
         20+i,1,"18930878762","shanghai"); //组装sql语句
 
     db.execute(queue); // 执行sql语句
-
     ```
 
 * 获取数据结果
