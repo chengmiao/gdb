@@ -7,8 +7,8 @@
 此数据库组件包含两个核心库，一个组装Sql语句，另一个管理sql连接，包括数据库连接池等。
 
 
-* 此库依赖mysql官方提供的mysql-connector c++ 版本  [mysql Connector/C++]:https://dev.mysql.com/downloads/connector/cpp/
-try to implement a very simple ,easy to use mysql client c++ lib . 
+* 此库依赖mysql官方提供的mysql-connector c++ 版本  [mysql Connector/C++]:https://dev.mysql.com/downloads/connector/cpp/ 
+* try to implement a very simple ,easy to use mysql client c++ lib . 
 
 
 just like : 
