@@ -48,7 +48,7 @@
 
 # 编译
     
-    ```
+    ```bash
     git submodule init   <br> 
     git submodule update   <br> 
     cmake .   <br> 
