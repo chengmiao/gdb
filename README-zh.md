@@ -16,11 +16,11 @@ just like :
 
 ```cpp
 
-TinyMysql  tinydb("127.0.0.1",3306,"root","passwd","tinydb"); 
+GDb db("127.0.0.1",3306,"root","passwd","tinydb"); 
 DBQueue queue; 
 queue.table("users").insert("name", "age","sex","phone","address").values( name.c_str() ,
     20+i,1,"18930878762","shanghai"); 
-tinydb.execute(queue); 
+db.execute(queue); 
 
 ```
 
