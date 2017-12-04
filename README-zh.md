@@ -10,35 +10,45 @@
 * 例子: 
 
 
-```cpp
+    ```cpp
 
-GDb db("127.0.0.1",3306,"root","passwd","tinydb"); //声明一个数据库实例
-DBQueue queue; 
-queue.table("users").insert("name", "age","sex","phone","address").values( name.c_str() ,
-    20+i,1,"18930878762","shanghai"); //组装sql语句
+    GDb db("127.0.0.1",3306,"root","passwd","tinydb"); //声明一个数据库实例
+    DBQueue queue; 
+    queue.table("users").insert("name", "age","sex","phone","address").values( name.c_str() ,
+        20+i,1,"18930878762","shanghai"); //组装sql语句
 
-db.execute(queue); // 执行sql语句
+    db.execute(queue); // 执行sql语句
 
-```
+    ```
+
 * 获取数据结果
 
-with this line above , it executes  a sql : 
-"select  name,  sex,  age  from test where   id  = 1   and name = "test"  order by id asc" 
+    [mysql connector/C++](https://dev.mysql.com/downloads/connector/cpp/)   对数据库结果集做了很好的封装。主要在怎么获取结果集增加了简单的接口，能快速获取结果集。 
+    
+    1. 直接获取数据集
+       框架对底层c接口进行了封装，使用智能指针包装了内存的申请和释放，应用层无需担心内存泄漏问题。 
+       ```cpp
+       MysqlSetPtr mSet = db.execute(queue).get(); 
+
+       ```
+
+    2. 直接通过lambda函数获取结果集
+       ```cpp
+       db.execute(queue).get([](sql::ResultSet & rstSet){ 
+            //process result set 
+       }); 
+
+       ```
 
 
-more sql syntax need to be implemented.  It's complicate to work on the sql grammar, if you can help, help me finished. 
 
 
 
 
-
-
-
-
-# build it 
-
-git submodule init   <br> 
-git submodule update   <br> 
-cmake .   <br> 
-make   <br>
+# 编译
+    
+    git submodule init   <br> 
+    git submodule update   <br> 
+    cmake .   <br> 
+    make   <br>
 

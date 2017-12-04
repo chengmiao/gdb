@@ -14,7 +14,7 @@ using namespace gdp::db;
 int main()
 {
 
-    GDatabase  tinydb("127.0.0.1",3306,"root","Hello123"); 
+    GDb tinydb("127.0.0.1",3306,"root","Hello123"); 
     tinydb.init("tinydb"); 
 
 	DBQueue queue; 
