@@ -25,20 +25,21 @@
 
     [mysql connector/C++](https://dev.mysql.com/downloads/connector/cpp/)   对数据库结果集做了很好的封装。主要在怎么获取结果集增加了简单的接口，能快速获取结果集。 
     
-    1. 直接获取数据集
-       框架对底层c接口进行了封装，使用智能指针包装了内存的申请和释放，应用层无需担心内存泄漏问题。 
-       ```cpp
-       MysqlSetPtr mSet = db.execute(queue).get(); 
+    1. 直接获取数据集 
+        框架对底层c接口进行了封装，使用智能指针包装了内存的申请和释放，应用层无需担心内存泄漏问题。 
 
-       ```
+        ```cpp
+        MysqlSetPtr mSet = db.execute(queue).get(); 
+
+        ```
 
     2. 直接通过lambda函数获取结果集
-       ```cpp
-       db.execute(queue).get([](sql::ResultSet & rstSet){ 
-            //process result set 
-       }); 
+        ```cpp
+        db.execute(queue).get([](sql::ResultSet & rstSet){ 
+        //process result set 
+        }); 
 
-       ```
+        ```
 
 
 
