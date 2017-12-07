@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project (tinynet)
+project (gdb)
 # The version number.
  
 # add the binary tree to the search path for include files
@@ -37,10 +37,10 @@ add_subdirectory(libs/fmt)
  
 # add the executable
 set(SRC_LIST  test.cpp ) 
-add_executable(test ${SRC_LIST})
+add_executable(gdb ${SRC_LIST})
 
-target_link_libraries(test PRIVATE fmt::fmt-header-only)
-target_link_libraries(test mysqlcppconn)
+target_link_libraries(gdb PRIVATE fmt::fmt-header-only)
+target_link_libraries(gdb mysqlcppconn)
 
 
 
