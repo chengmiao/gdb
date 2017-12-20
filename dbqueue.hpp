@@ -14,6 +14,24 @@ namespace gdp
                     m_sql.write(" {} ",tbName); 
                     return *this; 
                 }
+		DBQueue & create(const std::string &tbname,bool check = false)
+		{
+		    if (check)
+		    {
+			m_sql.write(" {} IF NOT EXISTS " , tbName); 
+		    }
+		    else 
+		    {
+			m_sql.write(" {} " , tbName); 
+		    }
+		    return *this; 
+		} 
+
+		DBQueue & def(const std::string  & key ,const std::string & type, int length =0 , const std::string & dft = "",bool inc  = false){
+		    m_sql.write(" {}  {} {}  {} ", key,type,length>0?"()":"" ,inc ? " AUTO_INCREMENT " :"" ); 
+		    return *this; 
+		} 
+
 
                 template <typename ... Args>
                     DBQueue & insert(const Args & ... args) 
