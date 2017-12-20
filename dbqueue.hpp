@@ -14,11 +14,11 @@ namespace gdp
                     m_sql.write(" {} ",tbName); 
                     return *this; 
                 }
-		DBQueue & create(const std::string &tbname,bool check = false)
+		DBQueue & create(const std::string &tbName,bool check = false)
 		{
 		    if (check)
 		    {
-			m_sql.write(" {} IF NOT EXISTS " , tbName); 
+                m_sql.write(" {} IF NOT EXISTS " , tbName); 
 		    }
 		    else 
 		    {
