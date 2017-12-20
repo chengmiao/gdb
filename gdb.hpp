@@ -202,8 +202,28 @@ namespace gdp
                     return first(m_queue); 
                 }
 
+                template<typename ... Args>
+                int execute(const char* format, const Args & ... args ) {
+                    fmt::MemoryWriter statement;
+                    statement.write(format, args...);
 
+                    if (is_valid())
+                    {
+                        std::cout << "exectue:" << statement.c_str() << std::endl; 
+                        try{
+                            sql::Statement *stmt =  m_default->connection->createStatement();
+                            int ret = stmt->execute(statement.c_str()); 
+                            delete stmt; 
+                            return ret; 
+                        }
+                        catch (const sql::SQLException & e)
+                        {
+                            std::cout << "execute sql failed : " << e.what() << std::endl; 
+                        }
+                    }
+                    return -1; 
 
+                }
 
                 int execute(const DBQueue & queue)
                 {
