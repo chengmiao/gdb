@@ -46,7 +46,6 @@ int main()
 
 	for(int i = 3;i < 8; i ++ )
 	{
-
 		fmt::MemoryWriter name ; 
 		name << "test" << i ; 
 		queue.del().where("name" ,name.c_str()); 

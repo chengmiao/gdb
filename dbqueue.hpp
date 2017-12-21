@@ -14,23 +14,52 @@ namespace gdp
                     m_sql.write(" {} ",tbName); 
                     return *this; 
                 }
-		DBQueue & create(const std::string &tbName,bool check = false)
-		{
-		    if (check)
-		    {
-                m_sql.write(" {} IF NOT EXISTS " , tbName); 
-		    }
-		    else 
-		    {
-			m_sql.write(" {} " , tbName); 
-		    }
-		    return *this; 
-		} 
+                DBQueue & create(const std::string &tbName,bool check = false)
+                {
+                    if (check)
+                    {
+                        m_sql.write(" {} IF NOT EXISTS " , tbName); 
+                    }
+                    else 
+                    {
+                        m_sql.write(" {} " , tbName); 
+                    }
+                    return *this; 
+                } 
+                DBQueue & begin()
+                {
+                    m_sql << " ( " ; 
+                    return *this; 
+                }
 
-		DBQueue & def(const std::string  & key ,const std::string & type, int length =0 , const std::string & dft = "",bool inc  = false){
-		    m_sql.write(" {}  {} {}  {} ", key,type,length>0?"()":"" ,inc ? " AUTO_INCREMENT " :"" ); 
-		    return *this; 
-		} 
+                DBQueue & end()
+                {
+                    m_sql << " ) " ; 
+                    return *this; 
+                }
+
+                DBQueue & def(const std::string  & key ,
+                        const std::string & type, 
+                        int length =0 , 
+                        const std::string & dft = "",bool inc  = false){
+                    
+                    if (definitions.size() > 0)
+                    {
+                        m_sql << " , "; 
+                    }
+
+                    fmt::MemoryWriter lenStr;
+                    if (length >0)
+                    {
+                        lenStr << "("<< length<< ")"; 
+                    }
+                    //lenStr[1]  = '['; 
+                    fmt::MemoryWriter defStr;
+
+                    defStr.write(" {} {}{} {} ", key,type,length>0?lenStr.c_str():"" ,inc ? " AUTO_INCREMENT " :"" ); 
+                    m_sql << defStr.c_str(); 
+                    return *this; 
+                } 
 
 
                 template <typename ... Args>
@@ -331,7 +360,7 @@ namespace gdp
 
             private:
 
-
+                std::vector<std::string > definitions; 
                 std::vector<std::string > wheres; 
                 std::vector<std::string > sets ; 
                 std::string  m_table; 
