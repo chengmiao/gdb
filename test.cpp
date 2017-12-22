@@ -48,7 +48,8 @@ int main()
 	{
 		fmt::MemoryWriter name ; 
 		name << "test" << i ; 
-		queue.del().where("name" ,name.c_str()); 
+		//queue.del().where("name" ,name.c_str()); 
+		queue.table("users").del().where("name" ,name.c_str()); 
 		tinydb.execute(queue); 
 	}
 
