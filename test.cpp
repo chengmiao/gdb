@@ -11,48 +11,72 @@
 #include "gdb.hpp"
 
 using namespace gdp::db; 
-int main()
-{
+int main() {
 
-    GDb tinydb("127.0.0.1",3306,"root","Hello123"); 
-    tinydb.init("tinydb"); 
+    GDb tinydb("127.0.0.1",3306,"root","123456"); 
+    tinydb.init("im_login"); 
 
-	DBQueue queue; 
-	//std::cout << tinydb.table("test").select ( "* ").where(" id ", "=", 1).where("name","=","test").order_by("id").get() << std::endl; 
-	//std::cout << tinydb.db("mysql").table("test").select ( "name", "sex","age" ).where(" id ", "=", 1).where("name","=","test").order_by("id").group_by("id").sql() ; 
-	//    std::cout << tinydb.db("mysql").table("test").select ( "name", "sex","age" ).where(" id ", "=", 1).where("name","=","test").order_by("id").sql() ; 
+    DBQueue queue; 
 
-	//   tinydb.get([](sql::ResultSet & ){
+    tinydb.execute(
+        "create table if not exists user_info ("
+            "uid            int             unsigned            not null,"
+            "name           varchar(32)     character set utf8  not null,"
+            "status         tinyint         unsigned            not null,"
+            "token          varchar(128)    character set utf8  not null,"
+            "create_time    int             unsigned            not null,"
+            "login_time     int             unsigned            not null,"
+            "primary key (uid)"
+        ") engine=innodb default charset=utf8;"
+    );
 
+    for(int i = 0; i < 10; i ++) {
+        fmt::MemoryWriter name; 
+        name << "test" << i ; 
+        queue.table("user_info").insert("uid", "name","status").values(i, name.c_str(), 0); 
+        tinydb.execute(queue); 
+    }
 
-	//           }); 
+    queue.table("user_info").select("uid", "name");
+    tinydb.get(queue, [](sql::ResultSet& res) {
+                int row = 0;
+                while(res.next()) {
+                    //std::cout << row << ", " << res.getRow() << std::endl;
+                    std::cout << "uid=" << res.getInt("uid");
+                    std::cout << ", name=" << res.getString("name") << std::endl;
+                    row++;
+                }
+            });
 
-	for(int i = 0; i < 10; i ++ )
-	{
-		fmt::MemoryWriter name ; 
-		name << "test" << i ; 
-		queue.table("users").insert("name", "age","sex","phone","address").values( name.c_str() ,20+i,1,"18930878762","shanghai"); 
-		//std::cout << queue.sql() << std::endl; 
-		tinydb.execute(queue); 
+    //tinydb.execute(queue); 
+    bool has_user = false;
+    queue.table("user_info").select("uid", "name");
+    tinydb.get(queue, [&has_user](sql::ResultSet& res) {
+                std::cout << res.rowsCount() << std::endl;
+                has_user = res.rowsCount() > 0;
+    });
+    std::cout << "has_user: " << has_user << std::endl;
 
-	}
+    for (int i = 0; i < 10; i++) {
+        fmt::MemoryWriter name;
+        name << "test" << i;
+        queue.table("user_info").update().set("status", 1);
+        tinydb.execute(queue);
+    }
 
-	//std::cout << tinydb.table("users").update().set("phone","8888888").where("name","arthur").sql(); 
-	queue.table("users").update().set("phone","8888888").where("name","arthur"); 
-
-	tinydb.execute(queue); 
-
-
-
-	for(int i = 3;i < 8; i ++ )
-	{
-		fmt::MemoryWriter name ; 
-		name << "test" << i ; 
-		//queue.del().where("name" ,name.c_str()); 
-		queue.table("users").del().where("name" ,name.c_str()); 
-		tinydb.execute(queue); 
-	}
-
-
-	return 0; 
+    for (int i = 0; i < 10; i++) {
+        fmt::MemoryWriter name;
+        name << "test" << i;
+        queue.table("user_info").del().where("name", name.c_str());
+        tinydb.execute(queue);
+    }
+    
+    queue.table("user_info").select("uid", "name");
+    tinydb.get(queue, [&has_user](sql::ResultSet& res) {
+                std::cout << res.rowsCount() << std::endl;
+                has_user = res.rowsCount() > 0;
+    });
+    std::cout << "has_user: " << has_user << std::endl;
+    
+    return 0; 
 }
