@@ -118,7 +118,20 @@ namespace gdp
                         return *this; 
                     }
 
+                DBQueue& set(const std::string& term) {
+                    fmt::MemoryWriter termStr; 
+                    termStr.write(" {} ", term);  
+                    sets.push_back(termStr.c_str()); 
+                    if (sets.size() <= 1)
+                    {
+                        m_sql << " set " << termStr.c_str(); 
+                    }
+                    else {
+                        m_sql << " ," << termStr.c_str(); 
+                    }
 
+                    return *this; 
+                }
 
                 template<class T> 
                     DBQueue& set(const std::string & key, T val )
