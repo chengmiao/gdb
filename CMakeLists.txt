@@ -7,15 +7,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/opt/mysql-connector-cpp)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/opt/fmt)
 
-file(GLOB_RECURSE FMT_SRC "opt/fmt/fmt/*.cc")
-
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+add_definitions(-DSPDLOG_FMT_EXTERNAL)
+
 add_executable(gdb samples/test.cpp ${FMT_SRC})
 target_link_libraries(gdb mysqlcppconn)
-
-
-
-
+target_link_libraries(gdb fmt)
