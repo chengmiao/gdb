@@ -31,50 +31,49 @@ int main() {
         fmt::MemoryWriter name; 
         name << "test" << i ; 
         queue.table("user_info").insert("uid", "name","status").values(i, name.c_str(), 0); 
-        bool ret = tinydb.execute(queue); 
-        std::cout << i << "-----" << ret << std::endl;
+        tinydb.execute(queue); 
     }
 
-//    queue.table("user_info").select("uid", "name");
-//    tinydb.get(queue, [](sql::ResultSet& res) {
-//                int row = 0;
-//                while(res.next()) {
-//                    //std::cout << row << ", " << res.getRow() << std::endl;
-//                    std::cout << "uid=" << res.getInt("uid");
-//                    std::cout << ", name=" << res.getString("name") << std::endl;
-//                    row++;
-//                }
-//            });
-//
-//    //tinydb.execute(queue); 
-//    bool has_user = false;
-//    queue.table("user_info").select("uid", "name");
-//    tinydb.get(queue, [&has_user](sql::ResultSet& res) {
-//                std::cout << res.rowsCount() << std::endl;
-//                has_user = res.rowsCount() > 0;
-//    });
-//    std::cout << "has_user: " << has_user << std::endl;
-//
-//    for (int i = 0; i < 10; i++) {
-//        fmt::MemoryWriter name;
-//        name << "test" << i;
-//        queue.table("user_info").update().set("status", 1);
-//        tinydb.execute(queue);
-//    }
-//
-//    for (int i = 0; i < 10; i++) {
-//        fmt::MemoryWriter name;
-//        name << "test" << i;
-//        queue.table("user_info").del().where("name", name.c_str());
-//        tinydb.execute(queue);
-//    }
-//    
-//    queue.table("user_info").select("uid", "name");
-//    tinydb.get(queue, [&has_user](sql::ResultSet& res) {
-//                std::cout << res.rowsCount() << std::endl;
-//                has_user = res.rowsCount() > 0;
-//    });
-//    std::cout << "has_user: " << has_user << std::endl;
+    queue.table("user_info").select("uid", "name");
+    tinydb.get(queue, [](sql::ResultSet& res) {
+                int row = 0;
+                while(res.next()) {
+                    //std::cout << row << ", " << res.getRow() << std::endl;
+                    std::cout << "uid=" << res.getInt("uid");
+                    std::cout << ", name=" << res.getString("name") << std::endl;
+                    row++;
+                }
+            });
+
+    //tinydb.execute(queue); 
+    bool has_user = false;
+    queue.table("user_info").select("uid", "name");
+    tinydb.get(queue, [&has_user](sql::ResultSet& res) {
+                std::cout << res.rowsCount() << std::endl;
+                has_user = res.rowsCount() > 0;
+    });
+    std::cout << "has_user: " << has_user << std::endl;
+
+    for (int i = 0; i < 10; i++) {
+        fmt::MemoryWriter name;
+        name << "test" << i;
+        queue.table("user_info").update().set("status", 1);
+        tinydb.execute(queue);
+    }
+
+    for (int i = 0; i < 10; i++) {
+        fmt::MemoryWriter name;
+        name << "test" << i;
+        queue.table("user_info").del().where("name", name.c_str());
+        tinydb.execute(queue);
+    }
+    
+    queue.table("user_info").select("uid", "name");
+    tinydb.get(queue, [&has_user](sql::ResultSet& res) {
+                std::cout << res.rowsCount() << std::endl;
+                has_user = res.rowsCount() > 0;
+    });
+    std::cout << "has_user: " << has_user << std::endl;
     
     return 0; 
 }
