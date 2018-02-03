@@ -185,6 +185,7 @@ namespace gdp
                     if (is_valid())
                     {
                         try { 
+                            // TODO scopt_ptr
                             sql::Statement * stmt = m_default->connection->createStatement();
                             sql::ResultSet * res  = stmt->executeQuery(queue.sql()); 
                             return Row(ResultSetSPtr(res )); 
@@ -203,7 +204,7 @@ namespace gdp
                 }
 
                 template<typename ... Args>
-                int execute(const char* format, const Args & ... args ) {
+                bool execute(const char* format, const Args & ... args ) {
                     fmt::MemoryWriter statement;
                     statement.write(format, args...);
 
@@ -211,38 +212,42 @@ namespace gdp
                     {
                         std::cout << "exectue:" << statement.c_str() << std::endl; 
                         try{
+                            // TODO scope_ptr
                             sql::Statement *stmt =  m_default->connection->createStatement();
-                            int ret = stmt->execute(statement.c_str()); 
+                            // excute return true if with results, false if with update count or nothing
+                            stmt->execute(statement.c_str()); 
                             delete stmt; 
-                            return ret; 
+                            return true; 
                         }
                         catch (const sql::SQLException & e)
                         {
                             std::cout << "execute sql failed : " << e.what() << std::endl; 
+                            return false;
                         }
                     }
-                    return -1; 
-
+                    return false; 
                 }
 
-                int execute(const DBQueue & queue)
+                bool execute(const DBQueue & queue)
                 {
                     if (is_valid())
                     {
                         std::cout << "exectue:" << queue.sql() << std::endl; 
                         try{
+                            // TODO scope_ptr
                             sql::Statement *stmt =  m_default->connection->createStatement();
-                            int ret = stmt->execute(queue.sql()); 
+                            // excute return true if with results, false if with update count or nothing
+                            stmt->execute(queue.sql()); 
                             delete stmt; 
-                            return ret; 
-
+                            return true; 
                         }
                         catch (const sql::SQLException & e)
                         {
                             std::cout << "execute sql failed : " << e.what() << std::endl; 
+                            return false;
                         }
                     }
-                    return -1; 
+                    return false; 
                 }
                 int execute()
                 {
