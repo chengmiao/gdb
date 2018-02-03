@@ -184,9 +184,9 @@ namespace gdp
                 Row  first(DBQueue & queue ){
                     if (is_valid())
                     {
+                        sql::Statement* stmt;
                         try { 
-                            // TODO scopt_ptr
-                            sql::Statement * stmt = m_default->connection->createStatement();
+                            stmt = m_default->connection->createStatement();
                             sql::ResultSet * res  = stmt->executeQuery(queue.sql()); 
                             return Row(ResultSetSPtr(res )); 
                         }
@@ -211,9 +211,9 @@ namespace gdp
                     if (is_valid())
                     {
                         std::cout << "exectue:" << statement.c_str() << std::endl; 
+                        sql::Statement* stmt;
                         try{
-                            // TODO scope_ptr
-                            sql::Statement *stmt =  m_default->connection->createStatement();
+                            stmt =  m_default->connection->createStatement();
                             // excute return true if with results, false if with update count or nothing
                             stmt->execute(statement.c_str()); 
                             delete stmt; 
@@ -222,6 +222,7 @@ namespace gdp
                         catch (const sql::SQLException & e)
                         {
                             std::cout << "execute sql failed : " << e.what() << std::endl; 
+                            delete stmt;
                             return false;
                         }
                     }
@@ -233,9 +234,9 @@ namespace gdp
                     if (is_valid())
                     {
                         std::cout << "exectue:" << queue.sql() << std::endl; 
+                        sql::Statement* stmt;
                         try{
-                            // TODO scope_ptr
-                            sql::Statement *stmt =  m_default->connection->createStatement();
+                            stmt =  m_default->connection->createStatement();
                             // excute return true if with results, false if with update count or nothing
                             stmt->execute(queue.sql()); 
                             delete stmt; 
@@ -244,6 +245,7 @@ namespace gdp
                         catch (const sql::SQLException & e)
                         {
                             std::cout << "execute sql failed : " << e.what() << std::endl; 
+                            delete stmt;
                             return false;
                         }
                     }
