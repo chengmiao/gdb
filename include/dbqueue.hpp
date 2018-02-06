@@ -342,18 +342,24 @@ namespace gdp
 
                 DBQueue & join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
                 {
-                    return left_join(tb,lId,op,rId); 
+                    return inner_join(tb,lId,op,rId); 
                 }
 
+                DBQueue & inner_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
+                {
+                    m_sql.write(" inner join {} on {} {} {} " ,tb, lId,op,rId); 
+                    return *this; 
+                }
+                
                 DBQueue & left_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
                 {
-                    m_sql.write(" left join {} on  {} {}  {} " ,tb, lId,op,rId); 
+                    m_sql.write(" left join {} on {} {} {} " ,tb, lId,op,rId); 
                     return *this; 
                 }
 
                 DBQueue & right_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
                 {
-                    m_sql.write(" left join {} on  {} {}  {} " ,tb, lId,op,rId); 
+                    m_sql.write(" right join {} on {} {} {} " ,tb, lId,op,rId); 
                     return *this; 
                 }
 
