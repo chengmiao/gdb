@@ -88,8 +88,14 @@ namespace gdp
                     m_configs[name] = DBConfigPtr(new  DBConfig(host,port,user,passwd,name)); 
                 }
 
-                void init(const char * db = nullptr)
-                {
+                void init(const char * db = nullptr){
+                    if (db != nullptr) {
+                        m_db = db;
+                    }
+                    connect();   
+                }
+
+                void connect() {
                     m_driver = get_driver_instance();
                     for(auto cfg:m_configs) 
                     {
@@ -106,9 +112,9 @@ namespace gdp
                             dbInfo->connection = conn; 
                             std::cout << "connect to db success" << std::endl; 
 
-                            if (db != nullptr) 
+                            if (!m_db.empty()) 
                             {
-                                this->usedb(db); 
+                                this->usedb(m_db); 
                             }
                         }
                     }
@@ -131,6 +137,9 @@ namespace gdp
                 }
 
                 ResultSetUPtr  get(DBQueue & queue){
+                    if (!is_valid()) {
+                        connect();
+                    }
                     if (is_valid())
                     {
                         try { 
@@ -160,6 +169,9 @@ namespace gdp
 
                 void get(DBQueue& queue , ResultFunc func)
                 {
+                    if (!is_valid()) {
+                        connect();
+                    }
                     if (is_valid())
                     {
                         try {
@@ -182,6 +194,9 @@ namespace gdp
                 }
 
                 Row  first(DBQueue & queue ){
+                    if (!is_valid()) {
+                        connect();
+                    }
                     if (is_valid())
                     {
                         sql::Statement* stmt;
@@ -207,6 +222,9 @@ namespace gdp
                 bool execute(const char* format, const Args & ... args ) {
                     fmt::MemoryWriter statement;
                     statement.write(format, args...);
+                    if (!is_valid()) {
+                        connect();
+                    }
 
                     if (is_valid())
                     {
@@ -231,6 +249,9 @@ namespace gdp
 
                 bool execute(const DBQueue & queue)
                 {
+                    if (!is_valid()) {
+                        connect();
+                    }
                     if (is_valid())
                     {
                         std::cout << "exectue:" << queue.sql() << std::endl; 
@@ -265,6 +286,7 @@ namespace gdp
             private:
                 std::map<std::string ,DBConfigPtr> m_configs; 
                 DBQueue m_queue ; 
+                std::string m_db;
                 sql::Driver *m_driver;
                 DBConfigPtr m_default; 
                 std::vector<std::shared_ptr<sql::Connection > >  m_connPool; 
