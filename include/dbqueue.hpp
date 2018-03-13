@@ -1,4 +1,5 @@
 #pragma once 
+#include "escape_string.h"
 
 namespace gdp
 {
@@ -163,8 +164,9 @@ namespace gdp
                 }
                 DBQueue& set(const std::string & key, const std::string & val)
                 {
-                    fmt::MemoryWriter termStr; 
-                    termStr.write(" {} = \"{}\" ", key ,  val);  
+                    fmt::MemoryWriter termStr;
+                    auto str = gdp::db::EscapeString(val);
+                    termStr.write(" {} = \"{}\" ", key, str);
                     sets.push_back(termStr.c_str()); 
                     if (sets.size() <= 1)
                     {
@@ -189,12 +191,14 @@ namespace gdp
 
                 std::string printarg(const char *  t)
                 {
-                    return std::string("\"") +t +"\""; 
+                    auto str = gdp::db::EscapeString(t);
+                    return std::string("\"") + str +"\"";
                 }
 
                 std::string printarg(const std::string& t )
                 {
-                    return std::string("\"") +t +"\""; 
+                    auto str = gdp::db::EscapeString(t);
+                    return std::string("\"") + str +"\"";
                 }
 
 
@@ -270,8 +274,9 @@ namespace gdp
                 }
                 DBQueue & where(const std::string & key , const std::string & op, const std::string & term)
                 {
-                    fmt::MemoryWriter termStr; 
-                    termStr.write("{} {} \"{}\"", key , op, term);  
+                    fmt::MemoryWriter termStr;
+                    auto str = gdp::db::EscapeString(term);
+                    termStr.write("{} {} \"{}\"", key , op, str);
                     wheres.push_back(termStr.c_str()); 
 
                     m_sql.write( wheres.size() > 1 ?" and {} ":" where {} " , termStr.c_str()); 

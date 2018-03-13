@@ -7,6 +7,7 @@
  */
 
 #pragma once 
+#include "escape_string.h"
 
 typedef std::shared_ptr<sql::ResultSet> ResultSetSPtr; 
 typedef std::unique_ptr<sql::ResultSet> ResultSetUPtr; 
@@ -34,8 +35,8 @@ struct SqlTypeTrait<const char * >
     {
     }
     SqlTypeTrait<const char * > & operator() (const char *   & val){
-
-        writer.write(" \"{}\" ",val); 
+        auto str = gdp::db::EscapeString(val);
+        writer.write(" \"{}\" ", str);
         return *this; 
     }
     fmt::MemoryWriter & writer; 
@@ -48,8 +49,8 @@ struct SqlTypeTrait<const std::string & >
     {
     }
     SqlTypeTrait<const std::string & > & operator() (const std::string   & val){
-
-        writer.write(" \"{}\" ",val); 
+        auto str = gdp::db::EscapeString(val);
+        writer.write(" \"{}\" ", str);
         return *this; 
     }
     fmt::MemoryWriter & writer; 
