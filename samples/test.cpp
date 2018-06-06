@@ -16,7 +16,7 @@ int main() {
     GDb tinydb("127.0.0.1",3306,"root","123456"); 
     tinydb.init("test"); 
 
-    DBQueue queue; 
+    DBQuery queue; 
 
     tinydb.execute(
         "create table if not exists user_info ("
@@ -35,12 +35,12 @@ int main() {
     }
 
     queue.table("user_info").select("uid", "name");
-    tinydb.get(queue, [](sql::ResultSet& res) {
+    tinydb.get(queue, [](ResultSetPtr res) {
                 int row = 0;
-                while(res.next()) {
+                while(res->next()) {
                     //std::cout << row << ", " << res.getRow() << std::endl;
-                    std::cout << "uid=" << res.getInt("uid");
-                    std::cout << ", name=" << res.getString("name") << std::endl;
+                    //std::cout << "uid=" << res->getInt("uid");
+                    //std::cout << ", name=" << res->getString("name") << std::endl;
                     row++;
                 }
             });
@@ -48,9 +48,9 @@ int main() {
     //tinydb.execute(queue); 
     bool has_user = false;
     queue.table("user_info").select("uid", "name");
-    tinydb.get(queue, [&has_user](sql::ResultSet& res) {
-                std::cout << res.rowsCount() << std::endl;
-                has_user = res.rowsCount() > 0;
+    tinydb.get(queue, [&has_user](ResultSetPtr res) {
+                //std::cout << res->rowsCount() << std::endl;
+                //has_user = res->rowsCount() > 0;
     });
     std::cout << "has_user: " << has_user << std::endl;
 
@@ -69,9 +69,9 @@ int main() {
     }
     
     queue.table("user_info").select("uid", "name");
-    tinydb.get(queue, [&has_user](sql::ResultSet& res) {
-                std::cout << res.rowsCount() << std::endl;
-                has_user = res.rowsCount() > 0;
+    tinydb.get(queue, [&has_user](ResultSetPtr res) {
+                //std::cout << res.rowsCount() << std::endl;
+                //has_user = res.rowsCount() > 0;
     });
     std::cout << "has_user: " << has_user << std::endl;
     

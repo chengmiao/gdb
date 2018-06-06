@@ -23,6 +23,21 @@ class ResultSet{
 			mysql_field_seek(this->res, 0); 
 			return mysql_fetch_row(this->res); 
 		}
+		bool next()
+		{
+		    if (res)
+		    {
+			MYSQL_ROW row = mysql_fetch_row(res); 
+			if (row)
+			{
+			    return true; 
+			}
+			return false; 
+		    }
+		    return false; 
+		}
+
+
 
 
 		MYSQL_RES* 			res  = nullptr;
