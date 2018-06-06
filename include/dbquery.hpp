@@ -5,17 +5,17 @@ namespace gdp
 {
     namespace db
     {
-        class DBQueue
+        class DBQuery
         {
             public:
                 typedef std::function<void(sql::ResultSet &) > ResultFunc; 
-                DBQueue & into(const std::string & tbName)
+                DBQuery & into(const std::string & tbName)
                 {
                     m_table = tbName; 
                     m_sql.write(" {} ",tbName); 
                     return *this; 
                 }
-                DBQueue & create(const std::string &tbName,bool check = false)
+                DBQuery & create(const std::string &tbName,bool check = false)
                 {
                     if (check)
                     {
@@ -27,19 +27,19 @@ namespace gdp
                     }
                     return *this; 
                 } 
-                DBQueue & begin()
+                DBQuery & begin()
                 {
                     m_sql << " ( " ; 
                     return *this; 
                 }
 
-                DBQueue & end()
+                DBQuery & end()
                 {
                     m_sql << " ) " ; 
                     return *this; 
                 }
 
-                DBQueue & def(const std::string  & key ,
+                DBQuery & def(const std::string  & key ,
                         const std::string & type, 
                         int length =0 , 
                         const std::string & dft = "",bool inc  = false){
@@ -64,7 +64,7 @@ namespace gdp
 
 
                 template <typename ... Args>
-                    DBQueue & insert(const Args & ... args) 
+                    DBQuery & insert(const Args & ... args) 
                     {
                         clear(); 
                         int argLen = sizeof ...(Args); 
@@ -96,7 +96,7 @@ namespace gdp
                     }
 
                 template <typename ... Args>
-                    DBQueue & update (const Args & ... args) 
+                    DBQuery & update (const Args & ... args) 
                     {
                         clear(); 
                         int argLen = sizeof ...(Args); 
@@ -119,7 +119,7 @@ namespace gdp
                         return *this; 
                     }
 
-                DBQueue& set(const std::string& term) {
+                DBQuery& set(const std::string& term) {
                     fmt::MemoryWriter termStr; 
                     termStr.write(" {} ", term);  
                     sets.push_back(termStr.c_str()); 
@@ -135,7 +135,7 @@ namespace gdp
                 }
 
                 template<class T> 
-                    DBQueue& set(const std::string & key, T val )
+                    DBQuery& set(const std::string & key, T val )
                     {
                         fmt::MemoryWriter termStr; 
                         termStr.write(" {} = {} ", key ,  val);  
@@ -151,18 +151,18 @@ namespace gdp
                         return *this; 
                     }
 
-                DBQueue & del()
+                DBQuery & del()
                 {
                     clear(); 
                     m_sql << "delete  from " << m_table  ; 
                     return *this; 
                 }
 
-                DBQueue& set(const std::string & key, const char *  val)
+                DBQuery& set(const std::string & key, const char *  val)
                 {
                     return this->set(key,std::string(val)); 
                 }
-                DBQueue& set(const std::string & key, const std::string & val)
+                DBQuery& set(const std::string & key, const std::string & val)
                 {
                     fmt::MemoryWriter termStr;
                     auto str = gdp::db::EscapeString(val);
@@ -204,7 +204,7 @@ namespace gdp
 
 
                 template <typename ... Args>
-                    DBQueue & values(const Args & ... args) 
+                    DBQuery & values(const Args & ... args) 
                     {
                         int argLen = sizeof ...(Args); 
                         m_sql << " values " << " ( "  ; 
@@ -229,7 +229,7 @@ namespace gdp
 
 
                 template <typename ... Args>
-                    DBQueue & select(const Args & ... args) 
+                    DBQuery & select(const Args & ... args) 
                     {
                         clear(); 
                         int argLen = sizeof ...(Args); 
@@ -251,28 +251,28 @@ namespace gdp
                         m_sql.write(" from {} " , m_table); 
                         return *this; 
                     }
-                DBQueue & select(const std::string & selData)
+                DBQuery & select(const std::string & selData)
                 {
                     clear(); 
                     m_sql.write("select {} from {} ",selData,m_table ); 
                     return *this; 
                 }
 
-                DBQueue & table(const std::string & tbName)
+                DBQuery & table(const std::string & tbName)
                 {
                     m_table = tbName; 
                     return *this; 
                 }
 
-                DBQueue & where(const std::string & key ,  const char * term )
+                DBQuery & where(const std::string & key ,  const char * term )
                 {
                     return this->where(key,"=",term); 
                 }
-                DBQueue & where(const std::string & key , const std::string & op, const char * term )
+                DBQuery & where(const std::string & key , const std::string & op, const char * term )
                 {
                     return where(key,op,std::string(term)); 
                 }
-                DBQueue & where(const std::string & key , const std::string & op, const std::string & term)
+                DBQuery & where(const std::string & key , const std::string & op, const std::string & term)
                 {
                     fmt::MemoryWriter termStr;
                     auto str = gdp::db::EscapeString(term);
@@ -283,7 +283,7 @@ namespace gdp
                     return *this; 
                 }
                 template <typename T> 
-                    DBQueue & where(T term)
+                    DBQuery & where(T term)
                     {
                         fmt::MemoryWriter termStr; 
                         termStr.write(" {} ",  term);  
@@ -295,13 +295,13 @@ namespace gdp
 
 
                 template <typename T> 
-                    DBQueue & where(const std::string & key ,  T   term)
+                    DBQuery & where(const std::string & key ,  T   term)
                     {
                         return where<T>(key,"=",term); 
                     }
 
                 template <typename T> 
-                    DBQueue & where(const std::string & key , const std::string & op, T   term)
+                    DBQuery & where(const std::string & key , const std::string & op, T   term)
                     {
                         fmt::MemoryWriter termStr; 
                         termStr.write(" {} {} {} ", key , op, term);  
@@ -312,7 +312,7 @@ namespace gdp
                     }
 
                 template<typename T> 
-                    DBQueue & or_where(const std::string & key ,const std::string & op , T  term)
+                    DBQuery & or_where(const std::string & key ,const std::string & op , T  term)
                     {
                         fmt::MemoryWriter termStr; 
                         termStr.write(" {} {} {} ", key , op, term);  
@@ -321,48 +321,48 @@ namespace gdp
                         return *this; 
                     }
 
-                DBQueue & limit( unsigned int count)
+                DBQuery & limit( unsigned int count)
                 {
                     m_sql.write(" limit {} " ,count); 
 
                     return *this; 
                 }
-                DBQueue & limit(unsigned int offset , unsigned int count)
+                DBQuery & limit(unsigned int offset , unsigned int count)
                 {
                     m_sql.write(" limit {}, {}  " ,offset , count); 
                     return *this; 
                 }
-                DBQueue & group_by (const std::string & col)
+                DBQuery & group_by (const std::string & col)
                 {
                     m_sql.write(" group by {} " ,col); 
                     return *this; 
                 }
 
 
-                DBQueue & order_by(const std::string & col, const std::string & type = "asc" )
+                DBQuery & order_by(const std::string & col, const std::string & type = "asc" )
                 {
                     m_sql.write(" order by {} {} " ,col,type ); 
                     return *this; 
                 }
 
-                DBQueue & join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
+                DBQuery & join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
                 {
                     return inner_join(tb,lId,op,rId); 
                 }
 
-                DBQueue & inner_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
+                DBQuery & inner_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
                 {
                     m_sql.write(" inner join {} on {} {} {} " ,tb, lId,op,rId); 
                     return *this; 
                 }
                 
-                DBQueue & left_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
+                DBQuery & left_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
                 {
                     m_sql.write(" left join {} on {} {} {} " ,tb, lId,op,rId); 
                     return *this; 
                 }
 
-                DBQueue & right_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
+                DBQuery & right_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
                 {
                     m_sql.write(" right join {} on {} {} {} " ,tb, lId,op,rId); 
                     return *this; 

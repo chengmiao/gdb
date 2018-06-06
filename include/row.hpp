@@ -6,20 +6,19 @@ namespace gdp
 {
     namespace db{
 
-
-
         class Row
-        {
-            public:
-                Row(ResultSetSPtr pRes):resultSet(pRes)
-            {
+		{
+			public:
 
-            }
-
-
-            private:
-                ResultSetSPtr  resultSet; 
-        }; 
+				static Row first(ResultSetPtr pRes)
+				{
+					Row row ; 
+					row.row = pRst->first(); 
+					return row; 
+				}
+			private:
+				MYSQL_ROW	row  = nullptr;
+		}; 
 
 
     }
