@@ -8,7 +8,7 @@ namespace gdp
         class DBQuery
         {
             public:
-                typedef std::function<void(sql::ResultSet &) > ResultFunc; 
+                typedef std::function<void(ResultSetPtr) > ResultHandler; 
                 DBQuery & into(const std::string & tbName)
                 {
                     m_table = tbName; 

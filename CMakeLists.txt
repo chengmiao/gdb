@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 2.6)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include_directories(/usr/include/mysql)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/opt/mysql-connector-cpp)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/opt/fmt)

@@ -1,6 +1,6 @@
 #pragma once 
 
-
+#include "resultset.hpp"
 
 namespace gdp
 {
@@ -13,7 +13,7 @@ namespace gdp
 				static Row first(ResultSetPtr pRes)
 				{
 					Row row ; 
-					row.row = pRst->first(); 
+					row.row = pRes->first(); 
 					return row; 
 				}
 			private:

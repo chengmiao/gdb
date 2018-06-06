@@ -12,14 +12,15 @@
 #include <memory>
 
 
-#include "mysql.h"
+#include "mysql/mysql.h"
 
 #include <iostream>
+#include <map>
 
 #include "fmt/format.h"
 
 #include <functional>
-#include "sqlutils.h"
+//#include "sqlutils.h"
 #include "row.hpp"
 
 #include "dbquery.hpp"
@@ -90,7 +91,7 @@ namespace gdp
 				}
 
 				void connect() {
-					m_driver = get_driver_instance();
+					//m_driver = get_driver_instance();
 					for(auto cfg:m_configs) 
 					{
 						DBConfigPtr dbInfo = cfg.second; 
@@ -229,7 +230,7 @@ namespace gdp
 				std::string m_db;
 				DBConfigPtr m_default; 
 				MYSQL *m_mysql;
-				std::vector<std::shared_ptr<sql::Connection > >  m_connPool; 
+				std::vector<std::shared_ptr<DBConnection > >  m_connPool; 
 		}; 
 	}
 }

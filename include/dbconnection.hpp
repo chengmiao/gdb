@@ -1,6 +1,6 @@
 #pragma once 
 
-#include "mysql.h"
+#include "resultset.hpp"
 #include <memory>
 
 class DBConnection{
@@ -34,8 +34,11 @@ class DBConnection{
 		{
 			int ret = mysql_real_query(m_mysql,sql.c_str(),sql.size() ); 
 			MYSQL_RES *res = mysql_store_result(m_mysql);
-			ResultSetPtr  rset  = std::make_shared<ResultRet>(res); 
+			ResultSetPtr  rset  = std::make_shared<ResultSet>(res); 
 			return rset; 
+		}
+		int use_db()
+		{
 		}
 
 
