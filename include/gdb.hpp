@@ -122,7 +122,7 @@ namespace gdp
 		{
 		    if (m_default) 
 		    {
-			m_default->connection->use_db(dbName); 
+			m_default->connection->use(dbName); 
 		    }
 		    return *this; 
 		}

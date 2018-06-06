@@ -60,7 +60,7 @@ class DBConnection{
 	    ResultSetPtr  rset  = std::make_shared<ResultSet>(res); 
 	    return rset; 
 	}
-	int use_db(const std::string &db)
+	int use(const std::string &db)
 	{
 	    return mysql_select_db(m_mysql,db.c_str()); 
 	}
