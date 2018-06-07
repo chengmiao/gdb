@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <string>
 #include "mysql/mysql.h"
+#include "logger.hpp"
 
 
 namespace gdp
@@ -53,7 +54,7 @@ namespace gdp
 	    {
 		if (idx >= m_field_num)
 		{
-		    std::cerr<< "column index out of range" << std::endl; 
+		    elog("column index out of range"); 
 		    return 0; 
 		}
 		if (m_row)

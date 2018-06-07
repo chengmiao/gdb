@@ -10,18 +10,12 @@
 
 #include <vector>
 #include <memory>
-
-
 #include "mysql/mysql.h"
-
 #include <iostream>
 #include <map>
-
 #include "fmt/format.h"
-
 #include <functional>
 //#include "sqlutils.h"
-
 #include "dbquery.hpp"
 #include "dbconnection.hpp"
 
@@ -100,11 +94,11 @@ namespace gdp
 			if (conn->is_connected())
 			{
 			    dbInfo.connection = conn; 
-			    std::cout << "connect to db success" << std::endl; 
+			    dlog("connect to db success"); 
 			}
 			else 
 			{
-			    std::cout << "connect to db failed" << std::endl; 
+			    elog("connect to db failed"); 
 			}
 		    }
 
@@ -181,7 +175,6 @@ namespace gdp
 
 			if (is_valid())
 			{
-			    std::cout << "exectue:" << statement.c_str() << std::endl; 
 			    return m_default.connection->execute(statement.c_str()); 
 			}
 			return false; 
@@ -194,7 +187,6 @@ namespace gdp
 		    }
 		    if (is_valid())
 		    {
-			std::cout << "exectue:" << query.sql() << std::endl; 
 			m_default.connection->execute(query.sql()); 
 		    }
 		    return false; 

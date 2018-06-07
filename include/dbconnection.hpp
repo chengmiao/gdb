@@ -8,12 +8,10 @@ namespace gdp
 {
     namespace db{
 
-
-
 	class DBConnection{
 
 	    public:
-		//typedef std::function<int, const std::string & >  DBEventHandler; 
+		//typedef std::function<int(int, const std::string & )>  DBEventHandler; 
 
 		DBConnection(const DBConnection&) = delete;  
 		DBConnection& operator = (const DBConnection &) = delete; 
@@ -47,11 +45,11 @@ namespace gdp
 			my_bool reconnect = 1;
 			mysql_options(&m_mysql, MYSQL_OPT_RECONNECT, &reconnect);
 			m_connected = true; 
-			std::cout << "connect to  mysql "<< m_user << ":" << m_passwd << "@"<< m_host <<":"<< m_port << " success" <<  std::endl; 
+			dlog("connect to server %s:%s@%s:%d success",m_user.c_str(),m_passwd.c_str(),m_host.c_str(),m_port); 
 		    }
 		    else 
 		    {
-			fprintf(stderr, "Failed to connect to database: Error: %s\n", mysql_error(&m_mysql));
+			elog("failed to connect to database error: %s\n",mysql_error(&m_mysql)); 
 		    }
 		    return res != nullptr; 
 		}
@@ -62,7 +60,7 @@ namespace gdp
 		    int ret = mysql_select_db(&m_mysql,db.c_str()); 
 		    if (ret != 0)
 		    {
-			fprintf(stderr, "execute queue : Error: %s\n", mysql_error(&m_mysql));
+			elog("execute query  error %s\n",mysql_error(&m_mysql)); 
 		    }
 		    return ret == 0 ; 
 		}
@@ -75,11 +73,11 @@ namespace gdp
 		//execute sql without result 
 		bool execute(const std::string & sql ){
 
-		    std::cout << "execute query :" << sql << std::endl; 
+		    dlog("execute query :%s ",sql.c_str()); 
 		    int ret = mysql_real_query(&m_mysql,sql.c_str(),sql.size() ); 
 		    if (ret != 0 )
 		    {
-			fprintf(stderr, "execute queue : Error: %s\n", mysql_error(&m_mysql));
+			elog( "execute query error: %s\n", mysql_error(&m_mysql));
 		    }
 		    return ret  == 0; 
 		}
@@ -89,7 +87,7 @@ namespace gdp
 		    int ret = mysql_real_query(&m_mysql,sql.c_str(),sql.size() ); 
 		    if ( ret != 0) 
 		    {
-			fprintf(stderr, "execute queue : Error: %s\n", mysql_error(&m_mysql));
+			elog("execute query error: %s\n", mysql_error(&m_mysql));
 			return nullptr; 
 		    }
 		    MYSQL_RES *res = mysql_store_result(&m_mysql);
