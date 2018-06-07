@@ -1,5 +1,6 @@
 #pragma once 
 #include "escape_string.h"
+#include "resultset.hpp"
 
 namespace gdp
 {

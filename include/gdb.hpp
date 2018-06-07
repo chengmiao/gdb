@@ -139,7 +139,6 @@ namespace gdp
 		    return false; 
 		}
 
-
 		void get(DBQuery& query , ResultHandler func)
 		{
 		    if (!is_valid()) {
@@ -156,7 +155,7 @@ namespace gdp
 		    return get(m_query,func); 
 		}
 
-		Row  first(DBQuery & query ){
+		ResultSetPtr   first(DBQuery & query ){
 		    if (!is_valid()) {
 			connect();
 		    }
@@ -164,12 +163,12 @@ namespace gdp
 		    if (is_valid())
 		    {
 			ResultSetPtr res = m_default.connection->query(query.sql()); 
-			return Row::first(res); 
+			return res->first(); 
 		    }
-		    return Row(); 
+		    return nullptr; 
 		}
 
-		Row  first(){
+		ResultSetPtr first(){
 		    return first(m_query); 
 		}
 

@@ -72,7 +72,7 @@ int main() {
     query.table("user_info").select("uid", "name");
     testdb.get(query, [&has_user](ResultSetPtr res) {
                 std::cout << res->count() << std::endl;
-                //has_user = res.rowsCount() > 0;
+                has_user = res->count() > 0;
     });
     std::cout << "has_user: " << has_user << std::endl;
     
