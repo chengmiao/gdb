@@ -62,7 +62,6 @@ namespace gdp
 	class GDb 
 	{
 	    public:
-		typedef std::shared_ptr<DBConfig> DBConfigPtr; 
 		typedef std::function<void(ResultSetPtr ) > ResultHandler; 
 
 		GDb(const std::string & host ="127.0.0.1",
@@ -70,7 +69,7 @@ namespace gdp
 			const std::string & user = "root",
 			const std::string & passwd = "", const std::string& db = "",const std::string &name="default")
 		{
-		    m_configs[name] = DBConfigPtr(new  DBConfig(host,port,user,passwd,name)); 
+		    m_configs[name] =  DBConfig(host,port,user,passwd,name); 
 		}
 		void add(
 			const std::string & host ="127.0.0.1",
@@ -80,39 +79,33 @@ namespace gdp
 			const std::string & name= "default"
 			)
 		{
-		    m_configs[name] = DBConfigPtr(new  DBConfig(host,port,user,passwd,name)); 
+		    m_configs[name] =  DBConfig(host,port,user,passwd,name); 
 		}
 
-		void init(const char * db = nullptr){
-		    if (db != nullptr) {
-			m_db = db;
-		    }
+		void init(const std::string & db){
+		    m_db = db;
 		    connect();   
 		}
 
 		void connect() {
-		    //m_driver = get_driver_instance();
-		    for(auto cfg:m_configs) 
+		    for(auto && cfg:m_configs) 
 		    {
-			DBConfigPtr dbInfo = cfg.second; 
-			if (dbInfo->name == "default" )
+			DBConfig&  dbInfo = cfg.second; 
+			if (dbInfo.name == "default" )
 			{
-			    m_default = dbInfo; 
+			    m_default = cfg.second; 
 			}
-			fmt::MemoryWriter addr ;
-			addr<<"tcp://"<< dbInfo->host<< ":"<< dbInfo->port; 
-			//sql::Connection * conn =  m_driver->connect(addr.c_str(), dbInfo->user, dbInfo->pass) ;
-			DBConnectionPtr conn = std::make_shared<DBConnection>(dbInfo->name); 
-			conn->init(); 
+
+			DBConnectionPtr conn = std::make_shared<DBConnection>(); 
+			conn->init(m_db,dbInfo.user, dbInfo.pass,dbInfo.host,dbInfo.port); 
 			if (conn->is_connected())
 			{
-			    dbInfo->connection = conn; 
+			    dbInfo.connection = conn; 
 			    std::cout << "connect to db success" << std::endl; 
-
-			    if (!m_db.empty()) 
-			    {
-				this->usedb(m_db); 
-			    }
+			}
+			else 
+			{
+			    std::cout << "connect to db failed" << std::endl; 
 			}
 		    }
 
@@ -120,10 +113,7 @@ namespace gdp
 
 		GDb & usedb(const std::string & dbName)
 		{
-		    if (m_default) 
-		    {
-			m_default->connection->use(dbName); 
-		    }
+		    m_default.connection->use(dbName); 
 		    return *this; 
 		}
 
@@ -131,19 +121,21 @@ namespace gdp
 		    if (!is_valid()) {
 			connect();
 		    }
+
 		    if (is_valid())
 		    {
-			return m_default->connection->query(query.sql()); 
+			return m_default.connection->query(query.sql()); 
 		    }
 		    return nullptr; 
 		}
 
 		bool is_valid()
 		{
-		    if (m_default && m_default->connection != nullptr)
+		    if (m_default.connection )
 		    {
-			return m_default->connection->is_connected(); 
+			return m_default.connection->is_connected(); 
 		    }
+
 		    return false; 
 		}
 
@@ -155,13 +147,13 @@ namespace gdp
 		    }
 		    if (is_valid())
 		    {
-			ResultSetPtr result = m_default->connection->query(query.sql()); 
+			ResultSetPtr result = m_default.connection->query(query.sql()); 
 			func(result ); 
 		    }
 		}
 		void get( ResultHandler func)
 		{
-		    return get(m_queue,func); 
+		    return get(m_query,func); 
 		}
 
 		Row  first(DBQuery & query ){
@@ -171,14 +163,14 @@ namespace gdp
 
 		    if (is_valid())
 		    {
-			ResultSetPtr res = m_default->connection->query(query.sql()); 
+			ResultSetPtr res = m_default.connection->query(query.sql()); 
 			return Row::first(res); 
 		    }
 		    return Row(); 
 		}
 
 		Row  first(){
-		    return first(m_queue); 
+		    return first(m_query); 
 		}
 
 		template<typename ... Args>
@@ -192,7 +184,7 @@ namespace gdp
 			if (is_valid())
 			{
 			    std::cout << "exectue:" << statement.c_str() << std::endl; 
-			    m_default->connection->execute(statement.c_str()); 
+			    return m_default.connection->execute(statement.c_str()); 
 			}
 			return false; 
 		    }
@@ -205,28 +197,26 @@ namespace gdp
 		    if (is_valid())
 		    {
 			std::cout << "exectue:" << query.sql() << std::endl; 
-			m_default->connection->execute(query.sql()); 
+			m_default.connection->execute(query.sql()); 
 		    }
 		    return false; 
 		}
+
 		int execute()
 		{
-		    return execute(m_queue); 
+		    return execute(m_query); 
 		}
 
 		DBQuery & query()
 		{
-		    return m_queue; 
+		    return m_query; 
 		}
 
-
 	    private:
-		std::map<std::string ,DBConfigPtr> m_configs; 
-		DBQuery m_queue ; 
+		std::map<std::string ,DBConfig> m_configs; 
+		DBQuery m_query ; 
 		std::string m_db;
-		DBConfigPtr m_default; 
-		MYSQL *m_mysql;
-		std::vector<std::shared_ptr<DBConnection > >  m_connPool; 
+		DBConfig m_default; 
 	}; 
     }
 }

@@ -16,7 +16,7 @@ namespace gdp
 		    row.row = pRes->first(); 
 		    return row; 
 		}
-
+		    
 
 	    private:
 		MYSQL_ROW	row  = nullptr;
