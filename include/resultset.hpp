@@ -10,7 +10,6 @@ namespace gdp
 
 
 	class ResultSet : std::enable_shared_from_this<ResultSet> 
-
 	{
 
 	    typedef std::unordered_map<std::string ,unsigned int > FieldMap; 
@@ -33,16 +32,21 @@ namespace gdp
 
 	    std::shared_ptr<ResultSet> first()
 	    {
-		if (!m_row)
+
+		if (m_res)
 		{
-		    m_row = mysql_fetch_row(this->m_res); 
+		    if (!m_row)
+		    {
+			m_row = mysql_fetch_row(this->m_res); 
+		    }
+		    else
+		    {
+			mysql_field_seek(this->m_res, 0); 
+			m_row = mysql_fetch_row(this->m_res); 
+		    }
+		    return shared_from_this(); 
 		}
-		else
-		{
-		    mysql_field_seek(this->m_res, 0); 
-		    m_row = mysql_fetch_row(this->m_res); 
-		}
-		return shared_from_this(); 
+		return nullptr; 
 	    }
 
 	    int get_int_at(unsigned int idx)
