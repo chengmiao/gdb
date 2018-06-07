@@ -18,6 +18,7 @@ namespace gdp
 	    public:
 		ResultSet(MYSQL_RES * r ):m_res(r)
 	    {
+		m_field_num = mysql_num_fields(m_res);
 		load_field_map(); 
 	    }
 		~ResultSet()
@@ -25,6 +26,7 @@ namespace gdp
 		    if (m_res)
 		    {
 			mysql_free_result(m_res); 
+			m_row = nullptr; 
 			m_res = nullptr; 
 		    }
 		}
@@ -43,6 +45,19 @@ namespace gdp
 		    return shared_from_this(); 
 		}
 		
+		int get_int_at(unsigned int idx)
+		{
+		    if (idx >= m_field_num)
+		    {
+			std::cerr<< "column index out of range" << std::endl; 
+			return 0; 
+		    }
+		    if (m_row)
+		    {
+			return std::stoi(m_row[idx]); 
+		    }
+		    return 0; 
+		}
 
 		int  get_int(const std::string & key )
 		{
@@ -71,6 +86,22 @@ namespace gdp
 		    }
 		    return ""; 
 		}
+	
+		std::string get_string_at(unsigned int idx)
+		{
+		    if (idx >= m_field_num)
+		    {
+			std::cerr<< "column index out of range" << std::endl; 
+			return 0; 
+		    }
+		    if (m_row)
+		    {
+			return std::string(m_row[idx]); 
+		    }
+		    return ""; 
+		}
+
+
 		float get_float(const std::string & key)
 		{
 		    if (m_row)
@@ -85,8 +116,22 @@ namespace gdp
 		    }
 		    return 0; 
 		}
+	
+		float  get_float_at(unsigned int idx)
+		{
+		    if (idx >= m_field_num)
+		    {
+			std::cerr<< "column index out of range" << std::endl; 
+			return 0; 
+		    }
+		    if (m_row)
+		    {
+			return std::stof(m_row[idx]); 
+		    }
+		    return 0; 
+		}
 
-		long long get_longlong(const std::string & key)
+		long long get_llong(const std::string & key)
 		{
 		    if (m_row)
 		    {
@@ -99,6 +144,22 @@ namespace gdp
 		    }
 		    return 0; 
 		}
+
+		float  get_llong_at(unsigned int idx)
+		{
+		    if (idx >= m_field_num)
+		    {
+			std::cerr<< "column index out of range" << std::endl; 
+			return 0; 
+		    }
+		    if (m_row)
+		    {
+			return std::stoll(m_row[idx]); 
+		    }
+		    return 0; 
+		}
+
+
 
 		bool next()
 		{
@@ -132,6 +193,7 @@ namespace gdp
 		MYSQL_RES* m_res  = nullptr;
 		MYSQL_ROW  m_row  = nullptr; 
 		FieldMap m_field_map; 
+		unsigned int m_field_num = 0; 
 
 	}; 	
 

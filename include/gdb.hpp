@@ -21,7 +21,6 @@
 
 #include <functional>
 //#include "sqlutils.h"
-#include "row.hpp"
 
 #include "dbquery.hpp"
 #include "dbconnection.hpp"
