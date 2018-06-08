@@ -54,6 +54,7 @@ class DBConnection {
   }
 
   bool use(const std::string &db) {
+    if (!this->is_connected()) return false;
     int ret = mysql_select_db(&m_mysql, db.c_str());
     if (ret != 0) {
       elog("execute query  error %s\n", mysql_error(&m_mysql));
@@ -65,6 +66,7 @@ class DBConnection {
 
   // execute sql without result
   bool execute(const std::string &sql) {
+    if (!this->is_connected()) return false;
     dlog("execute query :%s ", sql.c_str());
     int ret = mysql_real_query(&m_mysql, sql.c_str(), sql.size());
     if (ret != 0) {
@@ -74,6 +76,7 @@ class DBConnection {
   }
 
   ResultSetPtr query(const std::string &sql) {
+    if (!this->is_connected()) return nullptr;
     int ret = mysql_real_query(&m_mysql, sql.c_str(), sql.size());
     if (ret != 0) {
       elog("execute query error: %s\n", mysql_error(&m_mysql));
@@ -84,7 +87,10 @@ class DBConnection {
     return rset;
   }
 
-  my_ulonglong get_insert_id() { return mysql_insert_id(&m_mysql); }
+  my_ulonglong get_insert_id() {
+    if (!this->is_connected()) return my_ulonglong(-1);
+    return mysql_insert_id(&m_mysql);
+  }
 
  private:
   bool m_connected = false;
