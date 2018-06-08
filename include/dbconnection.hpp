@@ -1,116 +1,97 @@
-#pragma once 
-
-#include "resultset.hpp"
+#pragma once
+#include <functional>
 #include <memory>
-#include <functional> 
+#include <mutex>
+#include "resultset.hpp"
 
-namespace gdp
-{
-    namespace db{
+namespace gdp {
+namespace db {
 
-	class DBConnection{
+class DBConnection {
+ public:
+  DBConnection(const DBConnection &) = delete;
+  DBConnection &operator=(const DBConnection &) = delete;
+  DBConnection() {}
 
-	    public:
-		//typedef std::function<int(int, const std::string & )>  DBEventHandler; 
+  ~DBConnection() {
+    m_connected = false;
+    mysql_close(&m_mysql);
+    mysql_thread_end();
+  }
 
-		DBConnection(const DBConnection&) = delete;  
-		DBConnection& operator = (const DBConnection &) = delete; 
-		DBConnection() {}
+  int init(const std::string &db = "", const std::string &user = "root",
+           const std::string &passwd = "",
+           const std::string &host = "localhost", int port = 3306,
+           unsigned int timeout = 10)
 
-		int init(
-			const std::string & db = "", 
-			const std::string & user = "root",
-			const std::string & passwd = "",
-			const std::string& host  = "localhost", 
-			int port = 3306 )
+  {
+    static std::once_flag flag;
+    std::call_once(flag, []() { mysql_library_init(0, nullptr, nullptr); });
 
-		{
-		    m_db   = db; 
-		    m_host = host; 
-		    m_user = user; 
-		    m_passwd = passwd; 
-		    m_port = port; 
-		    mysql_init(&m_mysql);
+    mysql_init(&m_mysql);
+    mysql_thread_init();
 
-		    MYSQL * res = mysql_real_connect(&m_mysql,
-			    m_host.c_str(),
-			    m_user.c_str(),
-			    m_passwd.c_str(),
-			    m_db.c_str(),
-			    m_port,
-			    NULL,
-			    0);
-		    if (res)
-		    {
-			my_bool reconnect = 1;
-			mysql_options(&m_mysql, MYSQL_OPT_RECONNECT, &reconnect);
-			m_connected = true; 
-			dlog("connect to server %s:%s@%s:%d success",m_user.c_str(),m_passwd.c_str(),m_host.c_str(),m_port); 
-		    }
-		    else 
-		    {
-			elog("failed to connect to database error: %s\n",mysql_error(&m_mysql)); 
-		    }
-		    return res != nullptr; 
-		}
+    //重连
+    my_bool reconnect = 1;
+    mysql_options(&m_mysql, MYSQL_OPT_RECONNECT, &reconnect);
+    //超时
+    mysql_options(&m_mysql, MYSQL_OPT_CONNECT_TIMEOUT, &timeout);
+    mysql_options(&m_mysql, MYSQL_OPT_READ_TIMEOUT, &timeout);
+    mysql_options(&m_mysql, MYSQL_OPT_WRITE_TIMEOUT, &timeout);
+    //编码
+    mysql_options(&m_mysql, MYSQL_SET_CHARSET_NAME, "utf8");
 
-		bool use(const std::string &db)
-		{
-		    m_db = db; 
-		    int ret = mysql_select_db(&m_mysql,db.c_str()); 
-		    if (ret != 0)
-		    {
-			elog("execute query  error %s\n",mysql_error(&m_mysql)); 
-		    }
-		    return ret == 0 ; 
-		}
-
-		bool is_connected()
-		{
-		    return m_connected; 
-		}
-
-		//execute sql without result 
-		bool execute(const std::string & sql ){
-
-		    dlog("execute query :%s ",sql.c_str()); 
-		    int ret = mysql_real_query(&m_mysql,sql.c_str(),sql.size() ); 
-		    if (ret != 0 )
-		    {
-			elog( "execute query error: %s\n", mysql_error(&m_mysql));
-		    }
-		    return ret  == 0; 
-		}
-
-		ResultSetPtr query(const std::string & sql) 
-		{
-		    int ret = mysql_real_query(&m_mysql,sql.c_str(),sql.size() ); 
-		    if ( ret != 0) 
-		    {
-			elog("execute query error: %s\n", mysql_error(&m_mysql));
-			return nullptr; 
-		    }
-		    MYSQL_RES *res = mysql_store_result(&m_mysql);
-		    ResultSetPtr  rset  = std::make_shared<ResultSet>(res); 
-		    return rset; 
-		}
-
-		my_ulonglong  get_insert_id() 
-		{
-		    return mysql_insert_id(&m_mysql); 
-		}
-
-	    private:
-		bool m_connected = false; 
-		std::string m_host = "localhost" ; 
-		std::string m_db = ""; 
-		std::string m_user  = "root" ; 
-		std::string m_passwd = ""; 
-		int m_port  = 3306; 
-		MYSQL  m_mysql ;
-	}; 
-
-	typedef std::shared_ptr<DBConnection> DBConnectionPtr; 
-
+    MYSQL *res = mysql_real_connect(&m_mysql, host.c_str(), user.c_str(),
+                                    passwd.c_str(), db.c_str(), port, NULL, 0);
+    if (res) {
+      m_connected = true;
+      dlog("connect to server %s:%s@%s:%d success", user.c_str(),
+           passwd.c_str(), host.c_str(), port);
+    } else {
+      elog("failed to connect to database error: %s\n", mysql_error(&m_mysql));
     }
-}
+    return res != nullptr;
+  }
+
+  bool use(const std::string &db) {
+    int ret = mysql_select_db(&m_mysql, db.c_str());
+    if (ret != 0) {
+      elog("execute query  error %s\n", mysql_error(&m_mysql));
+    }
+    return ret == 0;
+  }
+
+  bool is_connected() { return m_connected; }
+
+  // execute sql without result
+  bool execute(const std::string &sql) {
+    dlog("execute query :%s ", sql.c_str());
+    int ret = mysql_real_query(&m_mysql, sql.c_str(), sql.size());
+    if (ret != 0) {
+      elog("execute query error: %s\n", mysql_error(&m_mysql));
+    }
+    return ret == 0;
+  }
+
+  ResultSetPtr query(const std::string &sql) {
+    int ret = mysql_real_query(&m_mysql, sql.c_str(), sql.size());
+    if (ret != 0) {
+      elog("execute query error: %s\n", mysql_error(&m_mysql));
+      return nullptr;
+    }
+    MYSQL_RES *res = mysql_store_result(&m_mysql);
+    ResultSetPtr rset = std::make_shared<ResultSet>(res);
+    return rset;
+  }
+
+  my_ulonglong get_insert_id() { return mysql_insert_id(&m_mysql); }
+
+ private:
+  bool m_connected = false;
+  MYSQL m_mysql;
+};
+
+typedef std::shared_ptr<DBConnection> DBConnectionPtr;
+
+}  // namespace db
+}  // namespace gdp

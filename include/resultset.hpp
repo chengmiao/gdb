@@ -1,6 +1,7 @@
 #pragma once 
 #include <unordered_map>
 #include <string>
+#include <memory>
 #include "mysql/mysql.h"
 #include "logger.hpp"
 
@@ -10,7 +11,7 @@ namespace gdp
     namespace db{
 
 
-	class ResultSet : std::enable_shared_from_this<ResultSet> 
+	class ResultSet : public std::enable_shared_from_this<ResultSet> 
 	{
 
 	    typedef std::unordered_map<std::string ,unsigned int > FieldMap; 
