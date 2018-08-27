@@ -192,6 +192,11 @@ namespace gdp
 		    return false; 
 		}
 
+    my_ulonglong get_last_insert_id()
+    {
+      return m_default.connection->get_insert_id();
+    }
+
 		int execute()
 		{
 		    return execute(m_query); 
