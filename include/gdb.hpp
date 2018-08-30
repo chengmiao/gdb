@@ -202,6 +202,11 @@ namespace gdp
 		    return execute(m_query); 
 		}
 
+    int get_affected_rows()
+    {
+      return m_default.connection->get_affected_rows();
+    }
+
 		DBQuery & query()
 		{
 		    return m_query; 

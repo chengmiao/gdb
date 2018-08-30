@@ -92,6 +92,11 @@ class DBConnection {
     return mysql_insert_id(m_mysql);
   }
 
+  int get_affected_rows() {
+    if (!this->is_connected()) return -1;
+    return mysql_affected_rows(m_mysql);
+  }
+
  private:
   bool m_connected = false;
   MYSQL *m_mysql;
