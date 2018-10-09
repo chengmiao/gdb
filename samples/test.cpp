@@ -30,11 +30,11 @@ int main() {
     for(int i = 0; i < 10; i ++) {
         fmt::MemoryWriter name; 
         name << "test" << i ; 
-        query.table("user_info").insert("uid", "name","status").values(i, name.c_str(), 0); 
+        query.insert_into("user_info","uid", "name","status").values(i, name.c_str(), 0); 
         testdb.execute(query); 
     }
 
-    query.table("user_info").select("uid", "name");
+    query.select("uid", "name").from("user_info");
     testdb.get(query, [](ResultSetPtr res) {
             int row = 0;
             std::cout << "total : " << res->count() << std::endl; 
@@ -48,7 +48,7 @@ int main() {
 
     //testdb.execute(query); 
     bool has_user = false;
-    query.table("user_info").select("uid", "name");
+    query.select("uid", "name").from("user_info");
     testdb.get(query, [&has_user](ResultSetPtr res) {
             std::cout << res->count() << std::endl;
             has_user = res->count() > 0;
@@ -59,18 +59,18 @@ int main() {
     for (int i = 0; i < 10; i++) {
         fmt::MemoryWriter name;
         name << "test" << i;
-        query.table("user_info").update().set("status", 1);
+        query.update("user_info").set("status", 1);
         testdb.execute(query);
     }
 
     for (int i = 0; i < 10; i++) {
         fmt::MemoryWriter name;
         name << "test" << i;
-        query.table("user_info").del().where("name", name.c_str());
+        query.del("user_info").where("name", name.c_str());
         testdb.execute(query);
     }
 
-    query.table("user_info").select("uid", "name");
+    query.select("uid", "name").from("user_info") ;
     testdb.get(query, [&has_user](ResultSetPtr res) {
             std::cout << res->count() << std::endl;
             has_user = res->count() > 0;

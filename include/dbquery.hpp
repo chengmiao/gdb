@@ -66,6 +66,37 @@ namespace gdp
                     return *this; 
                 } 
 
+                template <typename ... Args>
+                    DBQuery & insert_into(const std::string & tbName ,const Args & ... args) 
+                    {
+                        clear(); 
+                        int argLen = sizeof ...(Args); 
+                        m_table = tbName; 
+                        m_sql << " insert into " << tbName; 
+
+                        if (argLen > 0 )
+                        {
+                            m_sql << " ( "; 
+                        }
+                        fmt::MemoryWriter format; 
+                        for (int i  = 0; i   < argLen  ; i++)
+                        {
+                            if (i < argLen -1 )
+                            {
+                                format<< " {}, "; 
+                            }
+                            else {
+                                format<< " {} "; 
+                            }
+                        }
+                        m_sql.write(format.c_str(),args...); 
+                        if (argLen > 0)
+                        {
+                            m_sql.write(" ) " ); 
+                        }
+
+                        return *this; 
+                    }
 
                 template <typename ... Args>
                     DBQuery & insert(const Args & ... args) 
@@ -99,11 +130,12 @@ namespace gdp
                     }
 
                 template <typename ... Args>
-                    DBQuery & update (const Args & ... args) 
+                    DBQuery & update (const std::string & tbName,const Args & ... args) 
                     {
                         clear(); 
                         int argLen = sizeof ...(Args); 
-                        m_sql << " update " << m_table ; 
+                        m_table = tbName ; 
+                        m_sql << " update " << tbName; 
 
                         fmt::MemoryWriter format; 
                         for (int i  = 0; i   < argLen  ; i++)
@@ -156,10 +188,10 @@ namespace gdp
                         return *this; 
                     }
 
-                DBQuery & del()
+                DBQuery & del(const std::string &tbName)
                 {
                     clear(); 
-                    m_sql << "delete  from " << m_table  ; 
+                    m_sql << "delete from " << tbName; 
                     dlog("sql: %s",m_sql.c_str()); 
                     return *this; 
                 }
@@ -254,19 +286,21 @@ namespace gdp
                         }
                         //std::cout << "format is " << format.c_str() << std::endl; 
                         m_sql.write(format.c_str(),args...); 
-                        m_sql.write(" from {} " , m_table); 
+                        //m_sql.write(" from {} " , m_table); 
                         return *this; 
                     }
                 DBQuery & select(const std::string & selData)
                 {
                     clear(); 
-                    m_sql.write("select {} from {} ",selData,m_table ); 
+                    m_sql.write("select {} ",selData); 
+                    //m_sql.write(" from {} " , m_table); 
                     return *this; 
                 }
 
-                DBQuery & table(const std::string & tbName)
+                DBQuery & from(const std::string & tbName)
                 {
                     m_table = tbName; 
+                    m_sql.write(" {} ",tbName); 
                     return *this; 
                 }
 
