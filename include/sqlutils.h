@@ -55,3 +55,4 @@ struct SqlTypeTrait<const std::string & >
     }
     fmt::MemoryWriter & writer; 
 }; 
+

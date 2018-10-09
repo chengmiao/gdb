@@ -19,13 +19,13 @@ int main() {
     DBQuery query; 
 
     testdb.execute(
-        "create table if not exists user_info ("
+            "create table if not exists user_info ("
             "uid            int             unsigned            not null,"
             "name           varchar(32)     character set utf8  not null,"
             "status         tinyint         unsigned            not null,"
             "primary key (uid)"
-        ") engine=innodb default charset=utf8;"
-    );
+            ") engine=innodb default charset=utf8;"
+            );
 
     for(int i = 0; i < 10; i ++) {
         fmt::MemoryWriter name; 
@@ -36,23 +36,24 @@ int main() {
 
     query.table("user_info").select("uid", "name");
     testdb.get(query, [](ResultSetPtr res) {
-                int row = 0;
-		std::cout << "total : " << res->count() << std::endl; 
-                while(res->next()) {
-                    //std::cout << row << ", " << res.getRow() << std::endl;
-                    std::cout << "uid=" << res->get_int("uid");
-                    std::cout << ", name=" << res->get_string("name") << std::endl;
-                    row++;
-                }
+            int row = 0;
+            std::cout << "total : " << res->count() << std::endl; 
+            while(res->next()) {
+            //std::cout << row << ", " << res.getRow() << std::endl;
+            std::cout << "uid=" << res->get_int("uid");
+            std::cout << ", name=" << res->get_string("name") << std::endl;
+            row++;
+            }
             });
 
     //testdb.execute(query); 
     bool has_user = false;
     query.table("user_info").select("uid", "name");
     testdb.get(query, [&has_user](ResultSetPtr res) {
-                std::cout << res->count() << std::endl;
-                has_user = res->count() > 0;
-    });
+            std::cout << res->count() << std::endl;
+            has_user = res->count() > 0;
+            });
+
     std::cout << "has_user: " << has_user << std::endl;
 
     for (int i = 0; i < 10; i++) {
@@ -68,13 +69,13 @@ int main() {
         query.table("user_info").del().where("name", name.c_str());
         testdb.execute(query);
     }
-    
+
     query.table("user_info").select("uid", "name");
     testdb.get(query, [&has_user](ResultSetPtr res) {
-                std::cout << res->count() << std::endl;
-                has_user = res->count() > 0;
-    });
+            std::cout << res->count() << std::endl;
+            has_user = res->count() > 0;
+            });
     std::cout << "has_user: " << has_user << std::endl;
-    
+
     return 0; 
 }

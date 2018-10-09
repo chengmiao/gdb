@@ -1,6 +1,7 @@
 #pragma once 
 #include "escape_string.h"
 #include "resultset.hpp"
+#include "logger.hpp"
 
 namespace gdp
 {
@@ -9,13 +10,14 @@ namespace gdp
         class DBQuery
         {
             public:
-                typedef std::function<void(ResultSetPtr) > ResultHandler; 
+
                 DBQuery & into(const std::string & tbName)
                 {
                     m_table = tbName; 
                     m_sql.write(" {} ",tbName); 
                     return *this; 
                 }
+
                 DBQuery & create(const std::string &tbName,bool check = false)
                 {
                     if (check)
@@ -28,6 +30,7 @@ namespace gdp
                     }
                     return *this; 
                 } 
+
                 DBQuery & begin()
                 {
                     m_sql << " ( " ; 
@@ -73,7 +76,7 @@ namespace gdp
 
                         if (argLen > 0 )
                         {
-                            m_sql << "( "; 
+                            m_sql << " ( "; 
                         }
                         fmt::MemoryWriter format; 
                         for (int i  = 0; i   < argLen  ; i++)
@@ -86,11 +89,10 @@ namespace gdp
                                 format<< " {} "; 
                             }
                         }
-                        //std::cout << "format is " << format.c_str() << std::endl; 
                         m_sql.write(format.c_str(),args...); 
                         if (argLen > 0)
                         {
-                            m_sql.write(" )  " ); 
+                            m_sql.write(" ) " ); 
                         }
 
                         return *this; 
@@ -114,9 +116,11 @@ namespace gdp
                                 format<< " {} "; 
                             }
                         }
-                        //std::cout << "format is " << format.c_str() << std::endl; 
+
+                        //dlog("format is %s ",format.c_str()); 
                         m_sql.write(format.c_str(),args...); 
 
+                        dlog("sql: %s",m_sql.c_str()); 
                         return *this; 
                     }
 
@@ -129,7 +133,7 @@ namespace gdp
                         m_sql << " set " << termStr.c_str(); 
                     }
                     else {
-                        m_sql << " ," << termStr.c_str(); 
+                        m_sql << " , " << termStr.c_str(); 
                     }
 
                     return *this; 
@@ -146,7 +150,7 @@ namespace gdp
                             m_sql << " set " << termStr.c_str(); 
                         }
                         else {
-                            m_sql << " ," << termStr.c_str(); 
+                            m_sql << " , " << termStr.c_str(); 
                         }
 
                         return *this; 
@@ -156,6 +160,7 @@ namespace gdp
                 {
                     clear(); 
                     m_sql << "delete  from " << m_table  ; 
+                    dlog("sql: %s",m_sql.c_str()); 
                     return *this; 
                 }
 
@@ -325,14 +330,15 @@ namespace gdp
                 DBQuery & limit( unsigned int count)
                 {
                     m_sql.write(" limit {} " ,count); 
-
                     return *this; 
                 }
+
                 DBQuery & limit(unsigned int offset , unsigned int count)
                 {
-                    m_sql.write(" limit {}, {}  " ,offset , count); 
+                    m_sql.write(" limit {}, {} " ,offset , count); 
                     return *this; 
                 }
+
                 DBQuery & group_by (const std::string & col)
                 {
                     m_sql.write(" group by {} " ,col); 
