@@ -14,6 +14,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_definitions(-DSPDLOG_FMT_EXTERNAL)
 
-add_executable(gdb samples/test.cpp ${FMT_SRC})
-target_link_libraries(gdb mysqlclient)
-target_link_libraries(gdb fmt)
+add_executable(test samples/test.cpp ${FMT_SRC})
+add_executable(bench samples/bench.cpp ${FMT_SRC})
+target_link_libraries(test mysqlclient)
+target_link_libraries(test fmt)
+
+
+target_link_libraries(bench mysqlclient)
+target_link_libraries(bench fmt)

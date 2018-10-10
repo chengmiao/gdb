@@ -40,7 +40,7 @@ int main() {
             std::cout << "total : " << res->count() << std::endl; 
             while(res->next()) {
             //std::cout << row << ", " << res.getRow() << std::endl;
-            std::cout << "uid=" << res->get_int("uid");
+            std::cout << "uid=" << res->get_int32("uid");
             std::cout << ", name=" << res->get_string("name") << std::endl;
             row++;
             }

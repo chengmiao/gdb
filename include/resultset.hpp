@@ -4,6 +4,7 @@
 #include <memory>
 #include "mysql/mysql.h"
 #include "logger.hpp"
+#include <stdlib.h>  
 
 
 namespace gdp
@@ -13,8 +14,7 @@ namespace gdp
 
         class ResultSet : public std::enable_shared_from_this<ResultSet> 
         {
-
-            typedef std::unordered_map<std::string ,unsigned int > FieldMap; 
+            typedef std::unordered_map<std::string ,uint32_t > FieldMap; 
 
             public:
             ResultSet(MYSQL_RES * r ):m_res(r)
@@ -27,14 +27,13 @@ namespace gdp
                 if (m_res)
                 {
                     mysql_free_result(m_res); 
-                    m_row = nullptr; 
                     m_res = nullptr; 
+                    m_row = nullptr; 
                 }
             }
 
             std::shared_ptr<ResultSet> first()
             {
-
                 if (m_res)
                 {
                     if (!m_row)
@@ -51,7 +50,7 @@ namespace gdp
                 return nullptr; 
             }
 
-            int get_int_at(unsigned int idx)
+            int32_t get_int32_at(int32_t idx)
             {
                 if (idx >= m_field_num)
                 {
@@ -60,20 +59,48 @@ namespace gdp
                 }
                 if (m_row)
                 {
-                    return std::stoi(m_row[idx]); 
+                    return atoi(m_row[idx]); 
                 }
                 return 0; 
             }
 
-            int  get_int(const std::string & key )
+            int64_t get_int64_at(int32_t idx)
+            {
+                if (idx >= m_field_num)
+                {
+                    elog("column index out of range"); 
+                    return 0; 
+                }
+                if (m_row)
+                {
+                    return atoll(m_row[idx]); 
+                }
+                return 0; 
+            }
+
+            int32_t  get_int32(const std::string & key )
             {
                 if (m_row)
                 {
                     auto field =  m_field_map.find(key); 
                     if (field != m_field_map.end())
                     {
-                        unsigned int idx = field->second; 
-                        return std::stoi(m_row[idx]); 
+                        uint32_t idx = field->second; 
+                        return atoi(m_row[idx]); 
+                    }
+                }
+                return 0; 
+            }
+
+            int64_t  get_int64(const std::string & key )
+            {
+                if (m_row)
+                {
+                    auto field =  m_field_map.find(key); 
+                    if (field != m_field_map.end())
+                    {
+                        uint32_t idx = field->second; 
+                        return atoll(m_row[idx]); 
                     }
                 }
                 return 0; 
@@ -86,14 +113,14 @@ namespace gdp
                     auto field =  m_field_map.find(key); 
                     if (field != m_field_map.end())
                     {
-                        unsigned int idx = field->second; 
-                        return std::string(m_row[idx]); 
+                        uint32_t idx = field->second; 
+                        return m_row[idx]; 
                     }
                 }
                 return ""; 
             }
 
-            std::string get_string_at(unsigned int idx)
+            std::string get_string_at(uint32_t idx)
             {
                 if (idx >= m_field_num)
                 {
@@ -107,7 +134,6 @@ namespace gdp
                 return ""; 
             }
 
-
             float get_float(const std::string & key)
             {
                 if (m_row)
@@ -115,7 +141,7 @@ namespace gdp
                     auto field =  m_field_map.find(key); 
                     if (field != m_field_map.end())
                     {
-                        unsigned int idx = field->second; 
+                        uint32_t idx = field->second; 
                         return std::stof(m_row[idx]); 
                     }
 
@@ -123,7 +149,7 @@ namespace gdp
                 return 0; 
             }
 
-            float  get_float_at(unsigned int idx)
+            float  get_float_at(uint32_t idx)
             {
                 if (idx >= m_field_num)
                 {
@@ -144,14 +170,14 @@ namespace gdp
                     auto field =  m_field_map.find(key); 
                     if (field != m_field_map.end())
                     {
-                        unsigned int idx = field->second; 
+                        uint32_t idx = field->second; 
                         return std::stoll(m_row[idx]); 
                     }
                 }
                 return 0; 
             }
 
-            float  get_llong_at(unsigned int idx)
+            float  get_llong_at(uint32_t idx)
             {
                 if (idx >= m_field_num)
                 {
@@ -188,9 +214,9 @@ namespace gdp
             private:
             void load_field_map()
             {
-                unsigned int num  = mysql_num_fields(m_res);
+                uint32_t num  = mysql_num_fields(m_res);
                 MYSQL_FIELD * fields = mysql_fetch_fields(m_res); 
-                for(unsigned int i =0; i < num ; i ++)
+                for(uint32_t i =0; i < num ; i ++)
                 {
                     m_field_map[fields[i].name ]  = i ; 
                 }
@@ -199,8 +225,7 @@ namespace gdp
             MYSQL_RES* m_res  = nullptr;
             MYSQL_ROW  m_row  = nullptr; 
             FieldMap m_field_map; 
-            unsigned int m_field_num = 0; 
-
+            uint32_t m_field_num = 0; 
         }; 	
 
         typedef std::shared_ptr<ResultSet> ResultSetPtr; 

@@ -240,7 +240,6 @@ namespace gdp
                 }
 
 
-
                 template <typename ... Args>
                     DBQuery & values(const Args & ... args) 
                     {
@@ -272,21 +271,26 @@ namespace gdp
                         clear(); 
                         int argLen = sizeof ...(Args); 
                         m_sql << "select " ; 
-
-                        fmt::MemoryWriter format; 
-                        for (int i  = 0; i   < argLen  ; i++)
+                        if (argLen > 0)
                         {
-                            if (i < argLen -1 )
+
+                            fmt::MemoryWriter format; 
+                            for (int i  = 0; i   < argLen  ; i++)
                             {
-                                format<< " {}, "; 
+                                if (i < argLen -1 )
+                                {
+                                    format<< " {}, "; 
+                                }
+                                else {
+                                    format<< " {} "; 
+                                }
                             }
-                            else {
-                                format<< " {} "; 
-                            }
+                            m_sql.write(format.c_str(),args...); 
                         }
-                        //std::cout << "format is " << format.c_str() << std::endl; 
-                        m_sql.write(format.c_str(),args...); 
-                        //m_sql.write(" from {} " , m_table); 
+                        else 
+                        {
+                            m_sql << " * " ; 
+                        }
                         return *this; 
                     }
                 DBQuery & select(const std::string & selData)
@@ -300,7 +304,7 @@ namespace gdp
                 DBQuery & from(const std::string & tbName)
                 {
                     m_table = tbName; 
-                    m_sql.write(" {} ",tbName); 
+                    m_sql.write(" from {} ",tbName); 
                     return *this; 
                 }
 

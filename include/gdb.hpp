@@ -109,7 +109,7 @@ namespace gdp
                     return *this; 
                 }
 
-                ResultSetPtr  get(DBQuery & query){
+                ResultSetPtr get(DBQuery & query){
                     if (!is_valid()) {
                         connect();
                     }
@@ -146,6 +146,26 @@ namespace gdp
                 void get( ResultHandler func)
                 {
                     return get(m_query,func); 
+                }
+                void each(DBQuery& query , ResultHandler func)
+                {
+                    dlog("execute sql : %s",query.sql()); 
+
+                    if (!is_valid()) {
+                        connect();
+                    }
+                    if (is_valid())
+                    {
+                        ResultSetPtr result = m_default.connection->query(query.sql()); 
+                        if(result)
+                        {
+                            while(result->next())
+                            {
+                                func(result ); 
+                            }
+                        }
+                    }
+ 
                 }
 
                 ResultSetPtr   first(DBQuery & query ){
