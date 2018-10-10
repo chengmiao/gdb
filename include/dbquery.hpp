@@ -2,6 +2,7 @@
 #include "escape_string.h"
 #include "resultset.hpp"
 #include "logger.hpp"
+#include <stack>
 
 namespace gdp
 {
@@ -10,6 +11,16 @@ namespace gdp
         class DBQuery
         {
             public:
+                typedef std::function<void(DBQuery & ) > SelfHandler; 
+                DBQuery() {
+                    where_level_count.reserve(100); 
+                }
+
+                DBQuery(const std::string & tbName)
+                {
+                    m_table = tbName; 
+                    where_level_count.reserve(100); 
+                }
 
                 DBQuery & into(const std::string & tbName)
                 {
@@ -45,23 +56,23 @@ namespace gdp
 
                 DBQuery & def(const std::string  & key ,
                         const std::string & type, 
-                        int length =0 , 
-                        const std::string & dft = "",bool inc  = false){
+                        int length = 0 , 
+                        const std::string & dft = "",bool inc = false){
                     
                     if (definitions.size() > 0)
                     {
                         m_sql << " , "; 
                     }
 
-                    fmt::MemoryWriter lenStr;
+                    fmt::MemoryWriter defStr;
                     if (length >0)
                     {
-                        lenStr << "("<< length<< ")"; 
+                        defStr.write(" {} {}({}) {} ", key,type,length, inc ? " AUTO_INCREMENT " :"" ); 
                     }
-                    //lenStr[1]  = '['; 
-                    fmt::MemoryWriter defStr;
+                    else {
+                        defStr.write(" {} {} {} ", key,type, inc ? " AUTO_INCREMENT " :"" ); 
+                    }
 
-                    defStr.write(" {} {}{} {} ", key,type,length>0?lenStr.c_str():"" ,inc ? " AUTO_INCREMENT " :"" ); 
                     m_sql << defStr.c_str(); 
                     return *this; 
                 } 
@@ -81,8 +92,7 @@ namespace gdp
                         fmt::MemoryWriter format; 
                         for (int i  = 0; i   < argLen  ; i++)
                         {
-                            if (i < argLen -1 )
-                            {
+                            if (i < argLen -1 ) {
                                 format<< " {}, "; 
                             }
                             else {
@@ -94,7 +104,6 @@ namespace gdp
                         {
                             m_sql.write(" ) " ); 
                         }
-
                         return *this; 
                     }
 
@@ -103,12 +112,12 @@ namespace gdp
                     {
                         clear(); 
                         int argLen = sizeof ...(Args); 
+                        if (m_table.empty())
+                        {
+                            elog("invalid table name"); 
+                        }
                         m_sql << " insert into " << m_table ; 
 
-                        if (argLen > 0 )
-                        {
-                            m_sql << " ( "; 
-                        }
                         fmt::MemoryWriter format; 
                         for (int i  = 0; i   < argLen  ; i++)
                         {
@@ -120,10 +129,14 @@ namespace gdp
                                 format<< " {} "; 
                             }
                         }
-                        m_sql.write(format.c_str(),args...); 
-                        if (argLen > 0)
-                        {
+
+                        if (argLen > 0 ) {
+                            m_sql << " ( "; 
+                            m_sql.write(format.c_str(),args...); 
                             m_sql.write(" ) " ); 
+                        }
+                        else {
+                            m_sql.write(format.c_str(),args...); 
                         }
 
                         return *this; 
@@ -200,6 +213,7 @@ namespace gdp
                 {
                     return this->set(key,std::string(val)); 
                 }
+
                 DBQuery& set(const std::string & key, const std::string & val)
                 {
                     fmt::MemoryWriter termStr;
@@ -247,7 +261,7 @@ namespace gdp
                         m_sql << " values " << " ( "  ; 
 
                         fmt::MemoryWriter format; 
-                        for (int i  = 0; i   < argLen  ; i++)
+                        for (int i  = 0; i < argLen  ; i++)
                         {
                             if (i < argLen -1 )
                             {
@@ -257,7 +271,6 @@ namespace gdp
                                 format<< " {} "; 
                             }
                         }
-                        //std::cout << "format is " << format.c_str() << std::endl; 
                         m_sql.write(format.c_str(),printarg(args)...); 
                         m_sql.write(" )  " ); 
                         return *this; 
@@ -273,7 +286,6 @@ namespace gdp
                         m_sql << "select " ; 
                         if (argLen > 0)
                         {
-
                             fmt::MemoryWriter format; 
                             for (int i  = 0; i   < argLen  ; i++)
                             {
@@ -293,11 +305,11 @@ namespace gdp
                         }
                         return *this; 
                     }
+
                 DBQuery & select(const std::string & selData)
                 {
                     clear(); 
                     m_sql.write("select {} ",selData); 
-                    //m_sql.write(" from {} " , m_table); 
                     return *this; 
                 }
 
@@ -308,35 +320,78 @@ namespace gdp
                     return *this; 
                 }
 
-                DBQuery & where(const std::string & key ,  const char * term )
+                DBQuery & where(SelfHandler self)
+                {
+                    where_levels ++; 
+                    where_level_count[where_levels] = 0; 
+                    if (where_level_count[where_levels -1 ] > 0)
+                    {
+                        m_sql << " and  "; 
+                    }
+
+                    m_sql << " ( "; 
+                    self(*this);
+                    m_sql << " ) "; 
+                    where_levels --; 
+                    return *this; 
+                }
+
+                DBQuery & where(const std::string & key , const char * term )
                 {
                     return this->where(key,"=",term); 
                 }
+
                 DBQuery & where(const std::string & key , const std::string & op, const char * term )
                 {
                     return where(key,op,std::string(term)); 
                 }
+
                 DBQuery & where(const std::string & key , const std::string & op, const std::string & term)
                 {
                     fmt::MemoryWriter termStr;
                     auto str = gdp::db::EscapeString(term);
                     termStr.write("{} {} \"{}\"", key , op, str);
-                    wheres.push_back(termStr.c_str()); 
 
-                    m_sql.write( wheres.size() > 1 ?" and {} ":" where {} " , termStr.c_str()); 
+                    this->_where(termStr.c_str()); 
+                    
+
                     return *this; 
                 }
                 template <typename T> 
-                    DBQuery & where(T term)
+                    DBQuery & where_raw(T term)
                     {
                         fmt::MemoryWriter termStr; 
                         termStr.write(" {} ",  term);  
-                        wheres.push_back(termStr.c_str()); 
-
-                        m_sql.write( wheres.size() > 1 ?" and  {} ":"where {} " , term ); 
-                        return *this; 
+                        this->_where(termStr.c_str()); 
+                       return *this; 
                     }
 
+                void _where(const std::string & term)
+                {
+                    where_level_count[where_levels] ++; 
+                    if (where_levels > 0)
+                    {
+                        if (where_level_count[where_levels] > 1)
+                        {
+                            m_sql.write("and {} " ,term); 
+                        }
+                        else 
+                        {
+                            m_sql.write(" {} " ,term); 
+                        }
+                    }
+                    else 
+                    {
+                        if (where_level_count[where_levels] > 1)
+                        {
+                            m_sql.write("and {} " ,term); 
+                        }
+                        else 
+                        {
+                            m_sql.write(" where {} " ,term); 
+                        }
+                    }
+                }
 
                 template <typename T> 
                     DBQuery & where(const std::string & key ,  T   term)
@@ -349,9 +404,9 @@ namespace gdp
                     {
                         fmt::MemoryWriter termStr; 
                         termStr.write(" {} {} {} ", key , op, term);  
-                        wheres.push_back(termStr.c_str()); 
-                        //ugly way to do this 
-                        m_sql.write( wheres.size() > 1 ?" and {} ":"where {} " , termStr.c_str()); 
+
+                        this->_where(termStr.c_str()); 
+
                         return *this; 
                     }
 
@@ -360,7 +415,7 @@ namespace gdp
                     {
                         fmt::MemoryWriter termStr; 
                         termStr.write(" {} {} {} ", key , op, term);  
-                        wheres.push_back(termStr.c_str()); 
+                        where_level_count[where_levels] ++; 
                         m_sql.write( " or {} ", termStr.c_str()); 
                         return *this; 
                     }
@@ -422,18 +477,23 @@ namespace gdp
                 void clear()
                 {
                     m_sql.clear(); 
-                    wheres.clear(); 
                     sets.clear(); 
                 }
-
 
             private:
 
                 std::vector<std::string > definitions; 
-                std::vector<std::string > wheres; 
                 std::vector<std::string > sets ; 
                 std::string  m_table; 
                 fmt::MemoryWriter m_sql ;
+                enum SyntaxType{
+                    SYNTAX_WHERE
+                };
+                std::vector<uint32_t> where_level_count; 
+                uint32_t where_levels = 0; 
+
+
+
         }; 
 
     }
