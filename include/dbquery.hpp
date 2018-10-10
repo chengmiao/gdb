@@ -12,14 +12,10 @@ namespace gdp
         {
             public:
                 typedef std::function<void(DBQuery & ) > SelfHandler; 
-                DBQuery() {
-                    where_level_count.reserve(100); 
-                }
 
-                DBQuery(const std::string & tbName)
+                DBQuery(const std::string & tbName = "")
                 {
                     m_table = tbName; 
-                    where_level_count.reserve(100); 
                 }
 
                 DBQuery & into(const std::string & tbName)
@@ -172,8 +168,9 @@ namespace gdp
                 DBQuery& set(const std::string& term) {
                     fmt::MemoryWriter termStr; 
                     termStr.write(" {} ", term);  
-                    sets.push_back(termStr.c_str()); 
-                    if (sets.size() <= 1)
+
+                    set_item_count ++; 
+                    if (set_item_count <= 1)
                     {
                         m_sql << " set " << termStr.c_str(); 
                     }
@@ -189,8 +186,9 @@ namespace gdp
                     {
                         fmt::MemoryWriter termStr; 
                         termStr.write(" {} = {} ", key ,  val);  
-                        sets.push_back(termStr.c_str()); 
-                        if (sets.size() <= 1)
+
+                        set_item_count ++; 
+                        if (set_item_count <= 1)
                         {
                             m_sql << " set " << termStr.c_str(); 
                         }
@@ -219,15 +217,15 @@ namespace gdp
                     fmt::MemoryWriter termStr;
                     auto str = gdp::db::EscapeString(val);
                     termStr.write(" {} = \"{}\" ", key, str);
-                    sets.push_back(termStr.c_str()); 
-                    if (sets.size() <= 1)
+
+                    set_item_count ++; 
+                    if (set_item_count <= 1)
                     {
                         m_sql << " set " << termStr.c_str(); 
                     }
                     else {
                         m_sql << " ," << termStr.c_str(); 
                     }
-
                     return *this; 
                 }
 
@@ -238,8 +236,6 @@ namespace gdp
                         val << t ; 
                         return val.c_str() ; 
                     }
-
-
 
                 std::string printarg(const char *  t)
                 {
@@ -272,7 +268,7 @@ namespace gdp
                             }
                         }
                         m_sql.write(format.c_str(),printarg(args)...); 
-                        m_sql.write(" )  " ); 
+                        m_sql.write(" ) " ); 
                         return *this; 
                     }
 
@@ -328,7 +324,6 @@ namespace gdp
                     {
                         m_sql << " and  "; 
                     }
-
                     m_sql << " ( "; 
                     self(*this);
                     m_sql << " ) "; 
@@ -473,26 +468,19 @@ namespace gdp
                     return m_sql.c_str(); 
                 }
 
-
                 void clear()
                 {
                     m_sql.clear(); 
-                    sets.clear(); 
                 }
 
             private:
 
                 std::vector<std::string > definitions; 
-                std::vector<std::string > sets ; 
                 std::string  m_table; 
                 fmt::MemoryWriter m_sql ;
-                enum SyntaxType{
-                    SYNTAX_WHERE
-                };
-                std::vector<uint32_t> where_level_count; 
+                uint32_t where_level_count[32] = {0}; 
                 uint32_t where_levels = 0; 
-
-
+                uint32_t set_item_count = 0; 
 
         }; 
 
