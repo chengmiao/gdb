@@ -11,6 +11,8 @@ namespace gdp
         class DBQuery
         {
             public:
+                static const uint32_t MAX_NEST_LEVEL = 16;
+
                 typedef std::function<void(DBQuery & ) > SelfHandler; 
 
                 DBQuery(const std::string & tbName = "")
@@ -319,6 +321,11 @@ namespace gdp
                 DBQuery & where(SelfHandler self)
                 {
                     where_levels ++; 
+                    if (where_levels >= MAX_NEST_LEVEL)
+                    {
+                        elog("exceed the max nest level"); 
+                        return *this; 
+                    }
                     where_level_count[where_levels] = 0; 
                     if (where_level_count[where_levels -1 ] > 0)
                     {
@@ -478,7 +485,7 @@ namespace gdp
                 std::vector<std::string > definitions; 
                 std::string  m_table; 
                 fmt::MemoryWriter m_sql ;
-                uint32_t where_level_count[32] = {0}; 
+                uint32_t where_level_count[MAX_NEST_LEVEL] = {0}; 
                 uint32_t where_levels = 0; 
                 uint32_t set_item_count = 0; 
 
