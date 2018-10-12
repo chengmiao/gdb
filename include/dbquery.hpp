@@ -475,11 +475,17 @@ namespace gdp
                     return m_sql.c_str(); 
                 }
 
+
                 void clear()
                 {
                     m_sql.clear(); 
+                    for(int i =0; i < MAX_NEST_LEVEL; i ++)
+                    {
+                        where_level_count[i] = 0 ; 
+                    }
+                    set_item_count = 0; 
+                    where_levels = 0; 
                 }
-
             private:
 
                 std::vector<std::string > definitions; 
