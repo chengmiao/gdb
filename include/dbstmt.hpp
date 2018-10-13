@@ -1,5 +1,5 @@
 #pragma once 
-#include "mysql/mysql.h"
+#include "mysql.h"
 #include <vector>
 #include <string>
 #include "logger.hpp"

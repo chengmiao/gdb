@@ -9,7 +9,7 @@
 
 #include <vector>
 #include <memory>
-#include "mysql/mysql.h"
+#include "mysql.h"
 #include <iostream>
 #include <map>
 #include "fmt/format.h"
@@ -187,15 +187,15 @@ namespace gdp
 
                 template<typename ... Args>
                     bool execute(const char* format, const Args & ... args ) {
-                        fmt::MemoryWriter statement;
-                        statement.write(format, args...);
+                        fmt::memory_buffer statement;
+                        fmt::format_to(statement, format, args...);
                         if (!is_valid()) {
                             connect();
                         }
 
                         if (is_valid())
                         {
-                            return m_default.connection->execute(statement.c_str()); 
+                            return m_default.connection->execute(statement.data()); 
                         }
                         return false; 
                     }

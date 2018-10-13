@@ -2,7 +2,7 @@
 #include <unordered_map>
 #include <string>
 #include <memory>
-#include "mysql/mysql.h"
+#include "mysql.h"
 #include "logger.hpp"
 #include <stdlib.h>  
 

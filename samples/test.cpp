@@ -8,6 +8,7 @@
 
 
 #include <iostream>
+#include <sstream>
 #include "gdb.hpp"
 
 using namespace gdp::db; 
@@ -28,9 +29,9 @@ int main() {
             );
 
     for(int i = 0; i < 10; i ++) {
-        fmt::MemoryWriter name; 
+        std::stringstream  name; 
         name << "test" << i ; 
-        query.insert_into("user_info","uid", "name","status").values(i, name.c_str(), 0); 
+        query.insert_into("user_info","uid", "name","status").values(i, name.str(), 0); 
         testdb.execute(query); 
     }
 
@@ -57,16 +58,14 @@ int main() {
     std::cout << "has_user: " << has_user << std::endl;
 
     for (int i = 0; i < 10; i++) {
-        fmt::MemoryWriter name;
-        name << "test" << i;
         query.update("user_info").set("status", 1);
         testdb.execute(query);
     }
 
     for (int i = 0; i < 10; i++) {
-        fmt::MemoryWriter name;
+        std::stringstream  name;
         name << "test" << i;
-        query.del("user_info").where("name", name.c_str());
+        query.del("user_info").where("name", name.str());
         testdb.execute(query);
     }
 
