@@ -50,7 +50,7 @@ namespace gdp
                 DBQuery & end()
                 {
                     fmt::format_to(m_sql, " ) ") ; 
-                 
+
                     return *this; 
                 }
 
@@ -58,10 +58,10 @@ namespace gdp
                         const std::string & type, 
                         int length = 0 , 
                         const std::string & dft = "",bool inc = false){
-                    
+
                     if (definitions.size() > 0)
                     {
-                 
+
                         fmt::format_to(m_sql, " , ") ; 
                     }
 
@@ -153,12 +153,10 @@ namespace gdp
                         int argLen = sizeof ...(Args); 
                         m_table = tbName ; 
                         fmt::format_to(m_sql," update {} ",tbName); 
-
                         std::stringstream format; 
                         for (int i  = 0; i  < argLen  ; i++)
                         {
-                            if (i < argLen -1 )
-                            {
+                            if (i < argLen -1 ) {
                                 format<< " {}, "; 
                             }
                             else {
@@ -166,9 +164,7 @@ namespace gdp
                             }
                         }
 
-            
                         fmt::format_to(m_sql,format.str(),args...); 
-
                         dlog("sql: %s",m_sql.data()); 
                         return *this; 
                     }
@@ -196,7 +192,7 @@ namespace gdp
                             fmt::format_to(m_sql," set {} = {} ",key.c_str(),val); 
                         }
                         else {
-                          
+
                             fmt::format_to(m_sql," , {} = {} ",key.c_str(),val); 
                         } 
                         return *this; 
@@ -223,7 +219,7 @@ namespace gdp
                     if (set_item_count <= 1)
                     {
                         fmt::format_to(m_sql," set {} = {} ",key,gdp::db::EscapeString(val)); 
-                        
+
                     }
                     else {
                         fmt::format_to(m_sql," , {} = {} ",key,gdp::db::EscapeString(val)); 
@@ -281,7 +277,7 @@ namespace gdp
                     {
                         clear(); 
                         int argLen = sizeof ...(Args); 
-                      
+
                         fmt::format_to(m_sql,"select "); 
                         if (argLen > 0)
                         {
@@ -300,7 +296,7 @@ namespace gdp
                         }
                         else 
                         {
-           
+
                             fmt::format_to(m_sql," * "); 
                         }
                         return *this; 
@@ -357,7 +353,7 @@ namespace gdp
                     fmt::format_to(termStr,"{} {} \"{}\"", key , op, gdp::db::EscapeString(term));
 
                     this->_where(termStr.data()); 
-                    
+
 
                     return *this; 
                 }
@@ -365,10 +361,10 @@ namespace gdp
                     DBQuery & where_raw(T term)
                     {
                         fmt::memory_buffer termStr; 
-                       
+
                         fmt::format_to(termStr," {} ",term);   
                         this->_where(termStr.data()); 
-                       return *this; 
+                        return *this; 
                     }
 
                 void _where(const std::string & term)
@@ -460,7 +456,7 @@ namespace gdp
                     fmt::format_to(m_sql," inner join {} on {} {} {} " ,tb, lId,op,rId); 
                     return *this; 
                 }
-                
+
                 DBQuery & left_join(const std::string & tb, const std::string & lId, const std::string & op , const std::string & rId)
                 {
                     fmt::format_to(m_sql," left join {} on {} {} {} " ,tb, lId,op,rId); 
@@ -481,8 +477,7 @@ namespace gdp
 
                 void clear()
                 {
-m_sql = fmt::memory_buffer(); 
-//                    m_sql.clear(); 
+                    m_sql = fmt::memory_buffer(); 
                     for(int i =0; i < MAX_NEST_LEVEL; i ++)
                     {
                         where_level_count[i] = 0 ; 

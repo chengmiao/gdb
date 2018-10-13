@@ -34,6 +34,7 @@ int main() {
         query.insert_into("user_info","uid", "name","status").values(i, name.str(), 0); 
         testdb.execute(query); 
     }
+return 0; 
 
     query.select("uid", "name").from("user_info");
     testdb.get(query, [](ResultSetPtr res) {
