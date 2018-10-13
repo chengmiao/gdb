@@ -61,20 +61,18 @@ namespace gdp
 
                     if (definitions.size() > 0)
                     {
-
                         fmt::format_to(m_sql, " , ") ; 
                     }
 
-                    fmt::memory_buffer defStr;
                     if (length >0)
                     {
-                        fmt::format_to(defStr," {} {}({}) {} ", key,type,length, inc ? " AUTO_INCREMENT " :"" ); 
+                        std::string defStr = fmt::format(" {} {}({}) {} ", key,type,length, inc ? " AUTO_INCREMENT " :"" ); 
+                        fmt::format_to(m_sql,defStr.c_str()); 
                     }
                     else {
-                        fmt::format_to(defStr," {} {} {} ", key,type, inc ? " AUTO_INCREMENT " :"" ); 
+                        std::string defStr = fmt::format(" {} {} {} ", key,type, inc ? " AUTO_INCREMENT " :"" ); 
+                        fmt::format_to(m_sql,defStr.c_str()); 
                     }
-
-                    fmt::format_to(m_sql,defStr.data()); 
                     return *this; 
                 } 
 
@@ -165,7 +163,7 @@ namespace gdp
                         }
 
                         fmt::format_to(m_sql,format.str(),args...); 
-                        dlog("sql: %s",m_sql.data()); 
+                        dlog("sql: %s",fmt::to_string(m_sql).c_str()); 
                         return *this; 
                     }
 
@@ -192,7 +190,6 @@ namespace gdp
                             fmt::format_to(m_sql," set {} = {} ",key.c_str(),val); 
                         }
                         else {
-
                             fmt::format_to(m_sql," , {} = {} ",key.c_str(),val); 
                         } 
                         return *this; 
@@ -201,9 +198,8 @@ namespace gdp
                 DBQuery & del(const std::string &tbName)
                 {
                     clear();  
-
-                    fmt::format_to(m_sql," delete from  ",tbName); 
-                    dlog("sql: %s",m_sql.data()); 
+                    fmt::format_to(m_sql," delete from {} ",tbName); 
+                    dlog("sql: %s",fmt::to_string(m_sql).c_str()); 
                     return *this; 
                 }
 
@@ -214,12 +210,10 @@ namespace gdp
 
                 DBQuery& set(const std::string & key, const std::string & val)
                 { 
-
                     set_item_count ++; 
                     if (set_item_count <= 1)
                     {
                         fmt::format_to(m_sql," set {} = {} ",key,gdp::db::EscapeString(val)); 
-
                     }
                     else {
                         fmt::format_to(m_sql," , {} = {} ",key,gdp::db::EscapeString(val)); 
@@ -230,21 +224,17 @@ namespace gdp
                 template <class T>
                     std::string printarg(T t)
                     {
-                        std::stringstream val ;
-                        val << t ; 
-                        return val.str() ; 
+                        return fmt::format("{}",t); 
                     }
 
                 std::string printarg(const char *  t)
                 {
-                    auto str = gdp::db::EscapeString(t);
-                    return std::string("\"") + str +"\"";
+                    return fmt::format("\"{}\"",gdp::db::EscapeString(t)); 
                 }
 
                 std::string printarg(const std::string& t )
                 {
-                    auto str = gdp::db::EscapeString(t);
-                    return std::string("\"") + str +"\"";
+                    return fmt::format("\"{}\"",gdp::db::EscapeString(t)); 
                 }
 
 
@@ -337,33 +327,38 @@ namespace gdp
                     return *this; 
                 }
 
+                template <typename T> 
+                    DBQuery & where(const std::string & key ,  T   term)
+                    {
+                        return where<T>(key,"=",term); 
+                    }
+
                 DBQuery & where(const std::string & key , const char * term )
                 {
                     return this->where(key," = ",term); 
                 }
 
-                DBQuery & where(const std::string & key , const std::string & op, const char * term )
-                {
-                    return where(key,op,std::string(term)); 
-                }
+                template <typename T> 
+                    DBQuery & where(const std::string & key , const std::string & op, const T   & term)
+                    {
+                        std::string termStr = fmt::format(" {} {} {} ", key , op, printarg(term)); 
+                        this->_where(termStr); 
+                        return *this; 
+                    }
 
-                DBQuery & where(const std::string & key , const std::string & op, const std::string & term)
-                {
-                    fmt::memory_buffer termStr;  
-                    fmt::format_to(termStr,"{} {} \"{}\"", key , op, gdp::db::EscapeString(term));
+                //DBQuery & where(const std::string & key , const std::string & op, const std::string & term)
+                //{
+                //    std::string termStr = fmt::format("{} {} \"{}\"", key , op, gdp::db::EscapeString(term));
+                //    dlog("where term is %s",termStr.c_str()); 
+                //    this->_where(termStr); 
+                //    return *this; 
+                //}
 
-                    this->_where(termStr.data()); 
-
-
-                    return *this; 
-                }
                 template <typename T> 
                     DBQuery & where_raw(T term)
                     {
-                        fmt::memory_buffer termStr; 
-
-                        fmt::format_to(termStr," {} ",term);   
-                        this->_where(termStr.data()); 
+                        std::string termStr = fmt::format(" {} ",term); 
+                        this->_where(termStr.c_str()); 
                         return *this; 
                     }
 
@@ -393,31 +388,12 @@ namespace gdp
                         }
                     }
                 }
-
-                template <typename T> 
-                    DBQuery & where(const std::string & key ,  T   term)
-                    {
-                        return where<T>(key,"=",term); 
-                    }
-
-                template <typename T> 
-                    DBQuery & where(const std::string & key , const std::string & op, T   term)
-                    {
-                        fmt::memory_buffer termStr; 
-                        fmt::format_to(termStr," {} {} {} ", key , op, term);  
-
-                        this->_where(termStr.data()); 
-
-                        return *this; 
-                    }
-
                 template<typename T> 
                     DBQuery & or_where(const std::string & key ,const std::string & op , T  term)
                     {
-                        fmt::memory_buffer termStr; 
-                        fmt::format_to(termStr," {} {} {} ", key , op, term);  
                         where_level_count[where_levels] ++; 
-                        fmt::format_to(m_sql, " or {} ", termStr.data()); 
+                        std::string termStr = fmt::format(" {} {} {} ", key , op, term);
+                        fmt::format_to(m_sql, " or {} ", termStr.c_str()); 
                         return *this; 
                     }
 
@@ -469,9 +445,9 @@ namespace gdp
                     return *this; 
                 }
 
-                const char *  sql() const 
+                std::string   sql() const 
                 {
-                    return m_sql.data(); 
+                    return fmt::to_string(m_sql); 
                 }
 
 

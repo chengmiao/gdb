@@ -149,7 +149,7 @@ namespace gdp
                 }
                 void each(DBQuery& query , ResultHandler func)
                 {
-                    dlog("execute sql : %s",query.sql()); 
+                    dlog("execute sql : %s",query.sql().c_str()); 
 
                     if (!is_valid()) {
                         connect();
@@ -195,7 +195,8 @@ namespace gdp
 
                         if (is_valid())
                         {
-                            return m_default.connection->execute(statement.data()); 
+                            dlog("execute sql :%s",fmt::to_string(statement).c_str()); 
+                            return m_default.connection->execute(fmt::to_string(statement)); 
                         }
                         return false; 
                     }

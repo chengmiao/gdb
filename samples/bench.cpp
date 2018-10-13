@@ -20,11 +20,11 @@ int main() {
 
     double beg = cur_time(); 
 
-    query.select().from("rank_test_data").where("player_id","=","111111").where([](DBQuery& query){
-            query.where("score" ,">" ,1000).where("score" ,"<" ,10000); 
-            });
-
-    //query.select().from("rank_test_data"); 
+//    query.select().from("rank_test_data").where("player_id","=","111111").where([](DBQuery& query){
+//            query.where("score" ,">" ,1000).where("score" ,"<" ,10000); 
+//            });
+//
+    query.select().from("rank_test_data"); 
     double end = cur_time(); 
 
     dlog("from %f  to %f , spend %f ",beg,end,end-beg); 

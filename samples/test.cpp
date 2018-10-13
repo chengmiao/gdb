@@ -14,7 +14,8 @@
 using namespace gdp::db; 
 int main() {
 
-    GDb testdb("127.0.0.1",3306,"root","Hello123"); 
+    //GDb testdb("127.0.0.1",3306,"root","Hello123"); 
+    GDb testdb("10.246.60.86",3306,"root","123456"); 
     testdb.init("gdb"); 
 
     DBQuery query; 
@@ -34,7 +35,6 @@ int main() {
         query.insert_into("user_info","uid", "name","status").values(i, name.str(), 0); 
         testdb.execute(query); 
     }
-return 0; 
 
     query.select("uid", "name").from("user_info");
     testdb.get(query, [](ResultSetPtr res) {
