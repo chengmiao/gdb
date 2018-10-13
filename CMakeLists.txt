@@ -16,9 +16,13 @@ add_definitions(-DSPDLOG_FMT_EXTERNAL)
 
 add_executable(test samples/test.cpp ${FMT_SRC})
 add_executable(bench samples/bench.cpp ${FMT_SRC})
+add_executable(dbstmt samples/stmt.cpp ${FMT_SRC})
 target_link_libraries(test mysqlclient)
 target_link_libraries(test fmt)
 
+target_link_libraries(dbstmt mysqlclient)
+target_link_libraries(dbstmt fmt)
 
 target_link_libraries(bench mysqlclient)
 target_link_libraries(bench fmt)
+target_link_libraries(dbstmt fmt)
