@@ -187,16 +187,14 @@ namespace gdp
 
                 template<typename ... Args>
                     bool execute(const char* format, const Args & ... args ) {
-                        fmt::memory_buffer statement;
-                        fmt::format_to(statement, format, args...);
+                        std::string sql = fmt::format( format, args...);
                         if (!is_valid()) {
                             connect();
                         }
-
                         if (is_valid())
                         {
-                            dlog("execute sql :%s",fmt::to_string(statement).c_str()); 
-                            return m_default.connection->execute(fmt::to_string(statement)); 
+                            dlog("execute sql :%s",sql.c_str()); 
+                            return m_default.connection->execute(sql); 
                         }
                         return false; 
                     }

@@ -13,9 +13,7 @@ namespace gdp
         {
             public:
                 static const uint32_t MAX_NEST_LEVEL = 16;
-
                 typedef std::function<void(DBQuery & ) > SelfHandler; 
-
                 DBQuery(const std::string & tbName = "")
                 {
                     m_table = tbName; 
@@ -30,12 +28,10 @@ namespace gdp
 
                 DBQuery & create(const std::string &tbName,bool check = false)
                 {
-                    if (check)
-                    {
+                    if (check) {
                         fmt::format_to(m_sql," {} IF NOT EXISTS " , tbName); 
                     }
-                    else 
-                    {
+                    else {
                         fmt::format_to(m_sql," {} " , tbName); 
                     }
                     return *this; 
@@ -50,7 +46,6 @@ namespace gdp
                 DBQuery & end()
                 {
                     fmt::format_to(m_sql, " ) ") ; 
-
                     return *this; 
                 }
 
@@ -67,11 +62,11 @@ namespace gdp
                     if (length >0)
                     {
                         std::string defStr = fmt::format(" {} {}({}) {} ", key,type,length, inc ? " AUTO_INCREMENT " :"" ); 
-                        fmt::format_to(m_sql,defStr.c_str()); 
+                        fmt::format_to(m_sql,defStr); 
                     }
                     else {
                         std::string defStr = fmt::format(" {} {} {} ", key,type, inc ? " AUTO_INCREMENT " :"" ); 
-                        fmt::format_to(m_sql,defStr.c_str()); 
+                        fmt::format_to(m_sql,defStr); 
                     }
                     return *this; 
                 } 
@@ -82,15 +77,13 @@ namespace gdp
                         clear(); 
                         int argLen = sizeof ...(Args); 
                         m_table = tbName; 
-                        //m_sql << " insert into " << tbName; 
                         fmt::format_to(m_sql,"insert into {} " ,tbName); 
-
                         if (argLen > 0 )
                         {
                             fmt::format_to(m_sql, " ( ") ; 
                         }
                         std::stringstream format; 
-                        for (int i  = 0; i   < argLen  ; i++)
+                        for (int i  = 0; i < argLen ; i++)
                         {
                             if (i < argLen -1 ) {
                                 format<< " {}, "; 
@@ -172,10 +165,10 @@ namespace gdp
                     set_item_count ++; 
                     if (set_item_count <= 1)
                     { 
-                        fmt::format_to(m_sql," set {} ",term.c_str()); 
+                        fmt::format_to(m_sql," set {} ",term); 
                     }
                     else { 
-                        fmt::format_to(m_sql," , {} ",term.c_str()); 
+                        fmt::format_to(m_sql," , {} ",term); 
                     }
 
                     return *this; 
@@ -187,10 +180,10 @@ namespace gdp
                         set_item_count ++; 
                         if (set_item_count <= 1)
                         { 
-                            fmt::format_to(m_sql," set {} = {} ",key.c_str(),val); 
+                            fmt::format_to(m_sql," set {} = {} ",key,val); 
                         }
                         else {
-                            fmt::format_to(m_sql," , {} = {} ",key.c_str(),val); 
+                            fmt::format_to(m_sql," , {} = {} ",key,val); 
                         } 
                         return *this; 
                     }
@@ -349,7 +342,7 @@ namespace gdp
                 //DBQuery & where(const std::string & key , const std::string & op, const std::string & term)
                 //{
                 //    std::string termStr = fmt::format("{} {} \"{}\"", key , op, gdp::db::EscapeString(term));
-                //    dlog("where term is %s",termStr.c_str()); 
+                //    dlog("where term is %s",termStr); 
                 //    this->_where(termStr); 
                 //    return *this; 
                 //}
@@ -358,7 +351,7 @@ namespace gdp
                     DBQuery & where_raw(T term)
                     {
                         std::string termStr = fmt::format(" {} ",term); 
-                        this->_where(termStr.c_str()); 
+                        this->_where(termStr); 
                         return *this; 
                     }
 
@@ -393,7 +386,7 @@ namespace gdp
                     {
                         where_level_count[where_levels] ++; 
                         std::string termStr = fmt::format(" {} {} {} ", key , op, term);
-                        fmt::format_to(m_sql, " or {} ", termStr.c_str()); 
+                        fmt::format_to(m_sql, " or {} ", termStr); 
                         return *this; 
                     }
 
