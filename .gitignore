@@ -48,6 +48,7 @@ lib
 
 # Runtime
 core
+*~
 
 # Proto
 proto.desc
