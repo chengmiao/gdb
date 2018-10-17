@@ -4,8 +4,11 @@
 try to implement a very simple ,easy to use mysql client c++ lib . 
 
 * v2.3 Release Notes:
+
 upgrade fmtlib to v5.x
+
 add support format method to build sql quickly 
+
 support nest where syntax 
 
 
