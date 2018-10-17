@@ -337,7 +337,7 @@ namespace gdp
                         where_levels --; 
                     }
                     else {
-
+                        fmt::format_to(m_sql," where "); 
                         self(*this); 
                     }
                     return *this; 
@@ -443,6 +443,7 @@ namespace gdp
                     }
                     else {
 
+                        fmt::format_to(m_sql," where "); 
                         self(*this); 
                     }
                     return *this; 
