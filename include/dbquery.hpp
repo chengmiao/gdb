@@ -459,6 +459,17 @@ namespace gdp
                     return fmt::to_string(m_sql); 
                 }
 
+                /*********format syntax***************
+                format_spec ::=  [[fill]align][sign]["#"]["0"][width]["." precision][type]
+                fill        ::=  <a character other than '{', '}' or '\0'>
+                align       ::=  "<" | ">" | "=" | "^"
+                sign        ::=  "+" | "-" | " "
+                width       ::=  integer | "{" arg_id "}"
+                precision   ::=  integer | "{" arg_id "}"
+                type        ::=  int_type | "a" | "A" | "c" | "e" | "E" | "f" | "F" | "g" | "G" | "p" | "s"
+                int_type    ::=  "b" | "B" | "d" | "n" | "o" | "x" | "X"
+
+                */
                 template<typename ... Args>
                     static std::string format(const std::string & sql, const Args & ... args ) {
                         return fmt::format(sql,escape_param(args)...); 
