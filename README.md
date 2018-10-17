@@ -6,6 +6,12 @@
    2. 此数据库组件包含两个核心库，一个组装Sql语句，另一个管理sql连接，包括数据库连接池等。
    3. 此库依赖mysql官方提供的mysql-connector c++ 版本  [mysql Connector/C++](https://dev.mysql.com/downloads/connector/cpp/)
 
+* Release Notes:
+    upgrade fmtlib to v5.x
+    add support format method to build sql quickly 
+    support nest where syntax 
+
+
 
 * 例子: 
 
