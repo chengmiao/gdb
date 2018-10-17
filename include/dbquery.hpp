@@ -329,10 +329,17 @@ namespace gdp
                         fmt::format_to(m_sql," and "); 
                     }
 
-                    fmt::format_to(m_sql," ( "); 
-                    self(*this); 
-                    fmt::format_to(m_sql,"  ) "); 
-                    where_levels --; 
+                    if (where_levels > 0) 
+                    {
+                        fmt::format_to(m_sql," ( "); 
+                        self(*this); 
+                        fmt::format_to(m_sql,"  ) "); 
+                        where_levels --; 
+                    }
+                    else {
+
+                        self(*this); 
+                    }
                     return *this; 
                 }
 
@@ -401,7 +408,7 @@ namespace gdp
                     DBQuery & or_where(const std::string & key ,const std::string & op , T  term)
                     {
                         where_level_count[where_levels] ++; 
-                        std::string termStr = fmt::format(" {} {} {} ", key , op, term);
+                        std::string termStr = fmt::format(" {} {} {} ", key , op, printarg(term));
                         fmt::format_to(m_sql, " or {} ", termStr); 
                         return *this; 
                     }
