@@ -231,6 +231,22 @@ namespace gdp
                 }
 
 
+                template <class T>
+                    static std::string escape_param(T t)
+                    {
+                        return fmt::format("{}",t); 
+                    }
+
+                static std::string escape_param(const char *  t)
+                {
+                    return fmt::format("{}",gdp::db::EscapeString(t)); 
+                }
+
+                static std::string escape_param(const std::string& t )
+                {
+                    return fmt::format("{}",gdp::db::EscapeString(t)); 
+                }
+
                 template <typename ... Args>
                     DBQuery & values(const Args & ... args) 
                     {
@@ -444,8 +460,8 @@ namespace gdp
                 }
 
                 template<typename ... Args>
-                    std::string format(const std::string & sql, const Args & ... args ) {
-                        return fmt::format(sql,printarg(args)...); 
+                    static std::string format(const std::string & sql, const Args & ... args ) {
+                        return fmt::format(sql,escape_param(args)...); 
                     }
 
                 void clear()

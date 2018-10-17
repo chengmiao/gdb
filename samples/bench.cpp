@@ -20,7 +20,7 @@ int main() {
 
     double beg = cur_time(); 
 
-    std::cout << query.format("select {} from user_info where id > {} and id < {} " , "users.name" , 10, 1000); 
+    std::cout << DBQuery::format("select {} from user_info where id > {} and id < {} " , "users.name" , 10, 1000); 
 
 //    query.select().from("rank_test_data").where("player_id","=","111111").where([](DBQuery& query){
 //            query.where("score" ,">" ,1000).where("score" ,"<" ,10000); 
