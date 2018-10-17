@@ -438,11 +438,15 @@ namespace gdp
                     return *this; 
                 }
 
-                std::string   sql() const 
+                std::string sql() const 
                 {
                     return fmt::to_string(m_sql); 
                 }
 
+                template<typename ... Args>
+                    std::string format(const std::string & sql, const Args & ... args ) {
+                        return fmt::format(sql,printarg(args)...); 
+                    }
 
                 void clear()
                 {
@@ -454,6 +458,7 @@ namespace gdp
                     set_item_count = 0; 
                     where_levels = 0; 
                 }
+
             private:
 
                 std::vector<std::string > definitions; 
