@@ -329,7 +329,7 @@ namespace gdp
                         fmt::format_to(m_sql," and "); 
                     }
 
-                    if (where_levels > 0) 
+                    if (where_levels > 1) 
                     {
                         fmt::format_to(m_sql," ( "); 
                         self(*this); 
@@ -405,13 +405,48 @@ namespace gdp
                     }
                 }
                 template<typename T> 
-                    DBQuery & or_where(const std::string & key ,const std::string & op , T  term)
+                    DBQuery & or_where(const std::string & key ,const std::string & op , const T&   term)
                     {
                         where_level_count[where_levels] ++; 
                         std::string termStr = fmt::format(" {} {} {} ", key , op, printarg(term));
                         fmt::format_to(m_sql, " or {} ", termStr); 
                         return *this; 
                     }
+
+                template<typename T> 
+                    DBQuery & or_where(const std::string & key , const T & term)
+                    {
+                        return or_where<T>(key, "=", term); 
+                    }
+
+
+                DBQuery & or_where(SelfHandler self)
+                {
+                    where_levels ++; 
+                    if (where_levels >= MAX_NEST_LEVEL)
+                    {
+                        elog("exceed the max nest level"); 
+                        return *this; 
+                    }
+                    where_level_count[where_levels] = 0; 
+                    if (where_level_count[where_levels -1 ] > 0)
+                    {
+                        fmt::format_to(m_sql," or "); 
+                    }
+
+                    if (where_levels > 1) 
+                    {
+                        fmt::format_to(m_sql," ( "); 
+                        self(*this); 
+                        fmt::format_to(m_sql,"  ) "); 
+                        where_levels --; 
+                    }
+                    else {
+
+                        self(*this); 
+                    }
+                    return *this; 
+                }
 
                 DBQuery & limit( unsigned int count)
                 {
