@@ -1,120 +1,120 @@
-#pragma once 
+#pragma once
 #include "mysql.h"
 #include <vector>
-#include <string>
+#include <string.h>
 #include "logger.hpp"
 
 template <typename T>
     struct ParamType{
         enum_field_types  get_type(T  t)
         {
-            return  MYSQL_TYPE_NULL; 
+            return  MYSQL_TYPE_NULL;
         }
         unsigned long get_length(T t )
         {
-            return 0 ; 
+            return 0 ;
         }
-    }; 
+    };
 
 template <>
 struct ParamType<char * >{
         enum_field_types  get_type(const char *   t)
         {
-            return MYSQL_TYPE_STRING; 
+            return MYSQL_TYPE_STRING;
         }
         unsigned long get_length(const char *  t)
         {
-            return strlen(t); 
+            return strlen(t);
         }
 };
 template <>
 struct ParamType<std::string>{
         enum_field_types  get_type(const std::string &    t)
         {
-            return MYSQL_TYPE_STRING; 
+            return MYSQL_TYPE_STRING;
         }
         unsigned long get_length(const std::string & t)
         {
-            return t.length(); 
+            return t.length();
         }
-}; 
+};
 template <>
 struct ParamType<int>{
         enum_field_types  get_type(int   t)
         {
-            return MYSQL_TYPE_LONG; 
+            return MYSQL_TYPE_LONG;
         }
         unsigned long get_length(int t ) { return 0; }
 
-}; 
+};
 template <>
 struct ParamType<long long int>{
         enum_field_types  get_type(long long int )
         {
-            return MYSQL_TYPE_LONGLONG; 
+            return MYSQL_TYPE_LONGLONG;
         }
         unsigned long get_length(long long int t ) { return 0; }
-}; 
+};
 template <>
 struct ParamType<float>{
         enum_field_types  get_type(float)
         {
-            return MYSQL_TYPE_FLOAT; 
+            return MYSQL_TYPE_FLOAT;
         }
         unsigned long get_length(float t ) { return 0; }
-}; 
+};
 template <>
 struct ParamType<double>{
         enum_field_types  get_type(double  t)
         {
-            return MYSQL_TYPE_DOUBLE; 
+            return MYSQL_TYPE_DOUBLE;
         }
         unsigned long get_length(double t ) { return 0; }
-}; 
+};
 
-typedef std::vector<MYSQL_BIND> Binds; 
+typedef std::vector<MYSQL_BIND> Binds;
 
 
 template<typename First, typename... Rest>
 struct BuildBinder
 {
-    Binds & m_binders; 
+    Binds & m_binders;
     BuildBinder(Binds & bds):m_binders(bds){ }
     void proc(const First & elem,Rest ...rest)
     {
-        BuildBinder<Rest...> procor(m_binders) ; 
+        BuildBinder<Rest...> procor(m_binders) ;
 
-        MYSQL_BIND  bind; 
+        MYSQL_BIND  bind;
         memset(&bind, 0, sizeof(bind));
-        ParamType<First> pType; 
+        ParamType<First> pType;
         bind.buffer_type = pType.get_type(elem) ;
         bind.buffer = (char *) &elem;
-        unsigned long len = pType.get_length(elem); 
+        unsigned long len = pType.get_length(elem);
         bind.length = &len;
         bind.is_null = 0;
-        m_binders.push_back(bind); 
-        procor.proc(rest...); 
+        m_binders.push_back(bind);
+        procor.proc(rest...);
     }
 };
 
 template<typename Last>
 struct BuildBinder<Last>
 {
-    Binds & m_binders; 
+    Binds & m_binders;
     BuildBinder(Binds & bds):m_binders(bds){ }
     void proc(const Last & elem)
     {
-        MYSQL_BIND  bind; 
+        MYSQL_BIND  bind;
         memset(&bind, 0, sizeof(bind));
-        ParamType<Last> pType; 
+        ParamType<Last> pType;
         bind.buffer_type = pType.get_type(elem) ;
         bind.buffer = (char *) &elem;
-        unsigned long len = pType.get_length(elem); 
+        unsigned long len = pType.get_length(elem);
         bind.length = &len;
         bind.is_null = 0;
-        m_binders.push_back(bind); 
+        m_binders.push_back(bind);
 
-        dlog("finished bind"); 
+        dlog("finished bind");
     }
 };
 
@@ -128,41 +128,41 @@ class DBStmt{
             mysql_thread_init();
             MYSQL *res = mysql_real_connect(m_mysql, host.c_str(), user.c_str(),
                                     passwd.c_str(), db.c_str(), port, NULL, 0);
- 
+
         }
 
         template<typename ... Args>
             bool prepare(const std::string & sql, const Args & ... args ) {
                 MYSQL_STMT *stmt  = mysql_stmt_init(m_mysql);
 
-                int argLen = sizeof ...(Args); 
-                Binds binds; 
+                int argLen = sizeof ...(Args);
+                Binds binds;
 
                 int status = mysql_stmt_prepare(stmt,sql.c_str(),sql.length()) ;
                 if (status !=0 )
                 {
-                    elog("mysql_stmt_prepare : %s failed, error %s ",sql.c_str(),mysql_error(m_mysql)); 
+                    elog("mysql_stmt_prepare : %s failed, error %s ",sql.c_str(),mysql_error(m_mysql));
                 }
                 int param_count = mysql_stmt_param_count(stmt);
-                binds.reserve(param_count); 
-                BuildBinder<Args...> binder(binds); 
+                binds.reserve(param_count);
+                BuildBinder<Args...> binder(binds);
                 binder.proc(args...);
 
                 status = mysql_stmt_bind_param(stmt, binds.data());
                 if (status !=0 )
                 {
-                    elog("mysql_stmt_bind_param: %s failed, error %s ",sql.c_str(),mysql_error(m_mysql)); 
+                    elog("mysql_stmt_bind_param: %s failed, error %s ",sql.c_str(),mysql_error(m_mysql));
                 }
 
                 status = mysql_stmt_execute(stmt);
                 if (status !=0 )
                 {
-                    elog("mysql_stmt_execute: %s failed, error %s ",sql.c_str(),mysql_error(m_mysql)); 
+                    elog("mysql_stmt_execute: %s failed, error %s ",sql.c_str(),mysql_error(m_mysql));
                 }
 
 
 
-                //get result 
+                //get result
 
 
                 int        int_data[3];   /* input/output values */
@@ -172,7 +172,7 @@ class DBStmt{
                 MYSQL_RES *rs_metadata = mysql_stmt_result_metadata(stmt);
                 if (rs_metadata == NULL)
                 {
-                    elog("no meta data"); 
+                    elog("no meta data");
                 }
 
                 MYSQL_FIELD * fields = mysql_fetch_fields(rs_metadata);
@@ -204,25 +204,25 @@ class DBStmt{
                         case MYSQL_TYPE_FLOAT:
                             rs_bind[i].buffer = (char *) malloc(256);
                             rs_bind[i].buffer_length = sizeof(float);
-                            break; 
+                            break;
                         case MYSQL_TYPE_LONGLONG:
 
-                            dlog("mysql type is longlong"); 
+                            dlog("mysql type is longlong");
                             rs_bind[i].buffer = (char *) malloc(sizeof(long long int) );
                             rs_bind[i].buffer_length = sizeof(long long int);
-                            break;  
+                            break;
                         case MYSQL_TYPE_DOUBLE:
-                            dlog("mysql type is double"); 
+                            dlog("mysql type is double");
 
                             rs_bind[i].buffer = (char *) malloc(sizeof(double) );
                             rs_bind[i].buffer_length = sizeof(double);
-                            break;  
+                            break;
                         case MYSQL_TYPE_TINY:
-                            dlog("mysql type is tiny"); 
+                            dlog("mysql type is tiny");
 
                             rs_bind[i].buffer = (char *) malloc(sizeof(int) );
                             rs_bind[i].buffer_length = sizeof(int);
-                            break;  
+                            break;
 
 
                         default:
@@ -231,7 +231,7 @@ class DBStmt{
                     }
                 }
 
-                dlog("get file count %d",num_fields); 
+                dlog("get file count %d",num_fields);
                 status = mysql_stmt_bind_result(stmt, rs_bind);
                 while(status == 0)
                 {
@@ -252,12 +252,12 @@ class DBStmt{
                                             i, (long) *((int *) rs_bind[i].buffer));
                                 break;
                             case MYSQL_TYPE_STRING:
-                                dlog("mysql type is string "); 
+                                dlog("mysql type is string ");
                                 break;
                         case MYSQL_TYPE_LONGLONG:
 
-                                dlog("mysql type is string "); 
-                                break; 
+                                dlog("mysql type is string ");
+                                break;
 
                             default:
                                 printf("  unexpected type (%d)\n", rs_bind[i].buffer_type);
@@ -268,10 +268,10 @@ class DBStmt{
                     status = mysql_stmt_next_result(stmt);
                 }
 
-                return true; 
+                return true;
             }
 
     private:
         MYSQL *m_mysql;
         MYSQL_STMT    *stmt;
-} ; 
+} ;
