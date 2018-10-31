@@ -74,32 +74,35 @@ namespace gdp
                     m_configs[name] =  DBConfig(host,port,user,passwd,name);
                 }
 
-                void init(const std::string & db){
+                bool init(const std::string & db){
                     m_db = db;
-                    connect();
+                    return connect();
                 }
 
-                void connect() {
+                bool connect() {
                     for(auto && cfg:m_configs)
                     {
                         DBConfig&  dbInfo = cfg.second;
-                        if (dbInfo.name == "default" )
-                        {
-                            m_default = cfg.second;
-                        }
 
                         DBConnectionPtr conn = std::make_shared<DBConnection>();
                         conn->init(m_db,dbInfo.user, dbInfo.pass,dbInfo.host,dbInfo.port);
                         if (conn->is_connected())
                         {
                             dbInfo.connection = conn;
+                            if (dbInfo.name == "default" )
+                            {
+                                m_default = cfg.second;
+                            }
                             dlog("connect to db success");
+                            return true;
                         }
                         else
                         {
                             elog("connect to db failed");
+                            return false;
                         }
                     }
+                    return false;
 
                 }
 

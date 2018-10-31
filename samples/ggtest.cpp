@@ -50,7 +50,37 @@ int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
+TEST_F(GDbTest, init){
+    testdb.add("10.246.60.86",3306,"root","3456");//"127.0.0.1",3306,"root","123456");
+    EXPECT_FALSE(testdb.init("ai_check"));//"tinydb");
 
+    testdb.add("10.246.60.86",3306,"roo","123456");//"127.0.0.1",3306,"root","123456");
+    EXPECT_FALSE(testdb.init("ai_check"));//"tinydb");
+
+    testdb.add("10.246.60.86",3306,"root","123456");//"127.0.0.1",3306,"root","123456");
+    EXPECT_TRUE(testdb.init("ai_check"));//"tinydb");
+
+    EXPECT_TRUE(testdb.execute(
+        "create table if not exists user_info ("
+        "uid            int             unsigned            not null,"
+        "name           varchar(32)     character set utf8  not null,"
+        "status         tinyint         unsigned            not null,"
+        "score          float                      not null,"
+        "primary key (uid)"
+        ") engine=innodb default charset=utf8;"
+        ))<<query.sql();
+
+    EXPECT_FALSE(testdb.execute(
+        "create table if not exists user_info ("
+        "uid            unsigned            not null,"
+        "name           varchar(32)     character set utf8  not null,"
+        "status         tinyint         unsigned            not null,"
+        "score          float                      not null,"
+        "primary key (uid)"
+        ") engine=innodb default charset=utf8;"
+        ))<<query.sql();
+
+}
 
 TEST_F(GDbTest, insert){
     for(int i = 0; i < 20; i ++) {
