@@ -19,7 +19,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11  -g -D NDEBUG")  
 
 link_directories(/usr/local/lib)
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/opt/googletest/lib)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/opt/googletest/googletest/lib)
 add_definitions(-DSPDLOG_FMT_EXTERNAL)
 add_definitions("-Wall -g")
 
