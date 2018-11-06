@@ -102,6 +102,41 @@ namespace gdp
                     }
 
                 template <typename ... Args>
+                    DBQuery & insert_or_update(const std::string & tbName ,const Args & ... args)
+                    {
+                        clear();
+                        m_bUpset = true;
+                        int argLen = sizeof ...(Args);
+                        m_table = tbName;
+                        fmt::format_to(m_sql,"insert into {} " ,tbName);
+                        if (argLen > 0 )
+                        {
+                            fmt::format_to(m_sql, " ( ") ;
+                        }
+                        std::stringstream format;
+                        std::stringstream duplicate;
+                        for (int i  = 0; i < argLen ; i++)
+                        {
+                            if (i < argLen -1 ) {
+                                format<< " {}, ";
+                                duplicate<<" {" << i << "}=values({" << i << "}),";
+                            }
+                            else {
+                                format<< " {} ";
+                                duplicate<<" {" << i << "}=values({" << i << "})";
+                            }
+                        }
+                        fmt::format_to(m_sql,format.str(),args...);
+                        fmt::format_to(m_upsetDupSql, duplicate.str(),args...);
+
+                        if (argLen > 0)
+                        {
+                            fmt::format_to(m_sql," ) " );
+                        }
+                        return *this;
+                    }
+
+                template <typename ... Args>
                     DBQuery & insert(const Args & ... args)
                     {
                         clear();
@@ -266,6 +301,12 @@ namespace gdp
                         }
                         fmt::format_to(m_sql,format.str(),printarg(args)...);
                         fmt::format_to(m_sql," ) " );
+
+                        if(m_bUpset)
+                        {
+                            fmt::format_to(m_sql," on duplicate key update " );
+                            fmt::format_to(m_sql,fmt::to_string(m_upsetDupSql));
+                        }
                         return *this;
                     }
 
@@ -520,7 +561,8 @@ namespace gdp
                 void clear()
                 {
                     m_sql = fmt::memory_buffer();
-                    for(int i =0; i < MAX_NEST_LEVEL; i ++)
+                    m_upsetDupSql = fmt::memory_buffer();
+                    for(uint32_t i =0; i < MAX_NEST_LEVEL; i ++)
                     {
                         where_level_count[i] = 0 ;
                     }
@@ -536,6 +578,8 @@ namespace gdp
                 uint32_t where_level_count[MAX_NEST_LEVEL] = {0};
                 uint32_t where_levels = 0;
                 uint32_t set_item_count = 0;
+                bool m_bUpset = false;
+                fmt::memory_buffer m_upsetDupSql;
 
         };
 

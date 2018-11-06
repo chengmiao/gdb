@@ -31,7 +31,7 @@ protected:
             "create table if not exists user_info ("
             "uid            int             unsigned            not null,"
             "name           varchar(32)     character set utf8  not null,"
-            "status         tinyint         unsigned            not null,"
+            "status         tinyint         unsigned            ,"
             "score          float                      not null,"
             "primary key (uid)"
             ") engine=innodb default charset=utf8;"
@@ -98,6 +98,16 @@ TEST_F(GDbTest, insert){
     //    query.insert_into("confirm_list", "ID", "Text", "Label", "AppID", "ServerID").values(i+2, name1.str(), 2, name.str(),"s1212");
     //    EXPECT_TRUE(testdb.execute(query))<<query.sql();
     }
+    for(int i = 10; i < 30; i ++) {
+        std::stringstream  name;
+        name << "test" << i+10 ;
+
+        std::stringstream  name1;
+        name1 << "test" << i ;
+        query.insert_or_update("user_info","uid", "name", "score").values(i, name.str(), 2.234);
+        EXPECT_TRUE(testdb.execute(query))<<query.sql();
+
+    }
 }
 
 TEST_F(GDbTest, update){
@@ -135,6 +145,12 @@ TEST_F(GDbTest, select_order_by_limit){
             query.where("score" ,">" ,1000).where("score" ,"<=" ,719036109);
     }).order_by("player_id", "des");
     EXPECT_FALSE(testdb.test_each(query, [&](ResultSetPtr res) { }))<<query.sql();
+
+    query.select().from("rank_test_data").where("rank_type","=","108114").where("player_id", ">", "8926906").where([](DBQuery& query){
+            query.where("score" ,"<" ,1000).or_where("score" ,">=" ,819036109);
+    }).order_by("score");
+    testdb.get(query, [&](ResultSetPtr res) {
+        });
 
     query.select().from("rank_test_data").where("rank_type","=","108114").where("player_id", ">", "8926906").where([](DBQuery& query){
             query.where("score" ,"<" ,1000).or_where("score" ,">=" ,819036109);
@@ -365,13 +381,13 @@ TEST_F(GDbTest, del){
     query.del("user_info").where("uid",1).or_where("score","=",1.123);
     EXPECT_TRUE(testdb.execute(query))<<query.sql();
 
-    query.del("user_info").where("uid",1).where("name","=","test1");
+    query.del("user_info").where("uid",2).where("name","=","test1");
     EXPECT_TRUE(testdb.execute(query))<<query.sql();
 
-    for(int i = 0; i < 20; i ++) {
+    for(int i = 0; i < 30; i ++) {
         std::stringstream  name;
         name << "test" << i ;
-        query.del("user_info").where("name", name.str());
+        query.del("user_info").where("uid", i);
         EXPECT_TRUE(testdb.execute(query))<<query.sql();
 
 //        query.del("app_info").where("AppID", name.str());
