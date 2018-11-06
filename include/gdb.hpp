@@ -74,18 +74,22 @@ namespace gdp
                     m_configs[name] =  DBConfig(host,port,user,passwd,name);
                 }
 
-                bool init(const std::string & db){
+                SqlResult<bool> init(const std::string & db){
                     m_db = db;
                     return connect();
+
                 }
 
-                bool connect() {
+                SqlResult<bool> connect() {
+                    SqlResult<bool> retRes;
+                    retRes.resultVal = false;
+
                     for(auto && cfg:m_configs)
                     {
                         DBConfig&  dbInfo = cfg.second;
 
                         DBConnectionPtr conn = std::make_shared<DBConnection>();
-                        conn->init(m_db,dbInfo.user, dbInfo.pass,dbInfo.host,dbInfo.port);
+                        retRes = conn->init(m_db,dbInfo.user, dbInfo.pass,dbInfo.host,dbInfo.port);
                         if (conn->is_connected())
                         {
                             dbInfo.connection = conn;
@@ -94,16 +98,22 @@ namespace gdp
                                 m_default = cfg.second;
                             }
                             dlog("connect to db success");
-                            return true;
+                            retRes.resultVal = true;
+                            return retRes;
                         }
                         else
                         {
                             elog("connect to db failed");
-                            return false;
+                            retRes.resultVal = false;
+                            retRes.errorString = "connect to db failed";
+                            return retRes;
+
                         }
                     }
-                    return false;
 
+                    retRes.resultVal = false;
+                    retRes.errorString = "cfg:m_configs error";
+                    return retRes;
                 }
 
                 GDb & usedb(const std::string & dbName)
@@ -112,16 +122,36 @@ namespace gdp
                     return *this;
                 }
 
-                ResultSetPtr get(DBQuery & query){
+                SqlResult<ResultSetPtr> get(const std::string & sql){
+                    SqlResult<ResultSetPtr> retRes;
+                    retRes.resultVal = nullptr;
+
                     if (!is_valid()) {
                         connect();
                     }
+                    if (is_valid())
+                    {
+                        return m_default.connection->query(sql);
+                    }
+                    retRes.resultVal = nullptr;
+                    retRes.errorString = "failed to connect to database";
+                    return retRes;
+                }
 
+                SqlResult<ResultSetPtr> get(DBQuery & query){
+                    SqlResult<ResultSetPtr> retRes;
+                    retRes.resultVal = nullptr;
+
+                    if (!is_valid()) {
+                        connect();
+                    }
                     if (is_valid())
                     {
                         return m_default.connection->query(query.sql());
                     }
-                    return nullptr;
+                    retRes.resultVal = nullptr;
+                    retRes.errorString = "failed to connect to database";
+                    return retRes;
                 }
 
                 bool is_valid()
@@ -130,7 +160,6 @@ namespace gdp
                     {
                         return m_default.connection->is_connected();
                     }
-
                     return false;
                 }
 
@@ -141,17 +170,20 @@ namespace gdp
                     }
                     if (is_valid())
                     {
-                        ResultSetPtr result = m_default.connection->query(query.sql());
-                        func(result );
+                        auto result = m_default.connection->query(query.sql());
+                        func(result.resultVal);
                     }
                 }
 
-                void get( ResultHandler func)
+                void get( ResultHandler func )
                 {
                     return get(m_query,func);
                 }
-                void each(DBQuery& query , ResultHandler func)
+
+                SqlResult<bool> each(DBQuery& query , ResultHandler func)
                 {
+                    SqlResult<bool> retRes;
+                    retRes.resultVal = false;
                     dlog("execute sql : %s",query.sql().c_str());
 
                     if (!is_valid()) {
@@ -159,62 +191,56 @@ namespace gdp
                     }
                     if (is_valid())
                     {
-                        ResultSetPtr result = m_default.connection->query(query.sql());
-                        if(result)
+                        auto result = m_default.connection->query(query.sql());
+                        if(result.resultVal)
                         {
-                            while(result->next())
+                            while(result.resultVal->next())
                             {
-                                func(result );
+                                func(result.resultVal);
                             }
+                            retRes.resultVal = true;
+                            return retRes;
                         }
+
+                        retRes.resultVal = false;
+                        retRes.errorString = result.errorString;
+                        return retRes;
                     }
 
-                }
-                bool test_each(DBQuery& query , ResultHandler func)
-                {
-                    dlog("execute sql : %s",query.sql().c_str());
-
-                    if (!is_valid()) {
-                        connect();
-                    }
-                    if (is_valid())
-                    {
-                        ResultSetPtr result = m_default.connection->query(query.sql());
-                        if(result)
-                        {
-                            while(result->next())
-                            {
-                                func(result );
-                            }
-                        }
-                        else{
-                            return false;
-                        }
-                    }
-                    return true;
-
+                    retRes.resultVal = false;
+                    retRes.errorString = "failed to connect to database";
+                    return retRes;
                 }
 
-                ResultSetPtr   first(DBQuery & query ){
+                SqlResult<ResultSetPtr> first(DBQuery & query ){
+                    SqlResult<ResultSetPtr> retRes;
+                    retRes.resultVal = nullptr;
+
                     if (!is_valid()) {
                         connect();
                     }
 
                     if (is_valid())
                     {
-                        ResultSetPtr res = m_default.connection->query(query.sql());
-                        return res->first();
+                        auto res = m_default.connection->query(query.sql());
+                        retRes.resultVal = res.resultVal->first();
+                        return retRes;
                     }
-                    return nullptr;
+
+                    retRes.resultVal = nullptr;
+                    retRes.errorString = "failed to connect to database";
+                    return retRes;
                 }
 
-                ResultSetPtr first(){
+                SqlResult<ResultSetPtr> first(){
                     return first(m_query);
                 }
 
                 template<typename ... Args>
-                    bool execute(const char* format, const Args & ... args ) {
-                        std::string sql = fmt::format( format, args...);
+                    SqlResult<bool> execute(const char* format, const Args & ... args ) {
+                        SqlResult<bool> retRes;
+                        retRes.resultVal = false;
+                        std::string sql = fmt::format( format, args... );
                         if (!is_valid()) {
                             connect();
                         }
@@ -223,11 +249,16 @@ namespace gdp
                             dlog("execute sql :%s",sql.c_str());
                             return m_default.connection->execute(sql);
                         }
-                        return false;
+
+                        retRes.resultVal = false;
+                        retRes.errorString = "failed to connect to database";
+                        return retRes;
                     }
 
-                bool execute(const DBQuery & query)
+                SqlResult<bool> execute(const DBQuery & query)
                 {
+                    SqlResult<bool> retRes;
+                    retRes.resultVal = false;
                     if (!is_valid()) {
                         connect();
                     }
@@ -235,7 +266,25 @@ namespace gdp
                     {
                         return m_default.connection->execute(query.sql());
                     }
-                    return false;
+                    retRes.resultVal = false;
+                    retRes.errorString = "failed to connect to database";
+                    return retRes;
+                }
+
+                SqlResult<bool> execute(const std::string & sql)
+                {
+                    SqlResult<bool> retRes;
+                    retRes.resultVal = false;
+                    if (!is_valid()) {
+                        connect();
+                    }
+                    if (is_valid())
+                    {
+                        return m_default.connection->execute(sql);
+                    }
+                    retRes.resultVal = false;
+                    retRes.errorString = "failed to connect to database";
+                    return retRes;
                 }
 
                 my_ulonglong get_last_insert_id()
@@ -243,7 +292,7 @@ namespace gdp
                     return m_default.connection->get_insert_id();
                 }
 
-                int execute()
+                SqlResult<bool> execute()
                 {
                     return execute(m_query);
                 }

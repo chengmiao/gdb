@@ -52,13 +52,15 @@ int main(int argc, char **argv) {
 }
 TEST_F(GDbTest, init){
     testdb.add("10.246.60.86",3306,"root","3456");//"127.0.0.1",3306,"root","123456");
-    EXPECT_FALSE(testdb.init("ai_check"));//"tinydb");
+    EXPECT_FALSE(testdb.init("ai_check").resultVal)<<testdb.init("ai_check").errorString;//"tinydb");
 
+    std::cout << testdb.init("ai_check").errorString << std::endl;
+    std::cout << "空格" << std::endl;
     testdb.add("10.246.60.86",3306,"roo","123456");//"127.0.0.1",3306,"root","123456");
-    EXPECT_FALSE(testdb.init("ai_check"));//"tinydb");
+    EXPECT_FALSE(testdb.init("ai_check").resultVal)<<testdb.init("ai_check").errorString;//"tinydb");
 
     testdb.add("10.246.60.86",3306,"root","123456");//"127.0.0.1",3306,"root","123456");
-    EXPECT_TRUE(testdb.init("ai_check"));//"tinydb");
+    EXPECT_TRUE(testdb.init("ai_check").resultVal)<<testdb.init("ai_check").errorString;//"tinydb");
 
     EXPECT_TRUE(testdb.execute(
         "create table if not exists user_info ("
@@ -68,7 +70,7 @@ TEST_F(GDbTest, init){
         "score          float                      not null,"
         "primary key (uid)"
         ") engine=innodb default charset=utf8;"
-        ))<<query.sql();
+        ).resultVal)<<query.sql();
 
     EXPECT_FALSE(testdb.execute(
         "create table if not exists user_info ("
@@ -78,7 +80,7 @@ TEST_F(GDbTest, init){
         "score          float                      not null,"
         "primary key (uid)"
         ") engine=innodb default charset=utf8;"
-        ))<<query.sql();
+        ).resultVal)<<query.sql();
 
 }
 
@@ -90,13 +92,13 @@ TEST_F(GDbTest, insert){
         std::stringstream  name1;
         name1 << "test" << i ;
         query.insert_into("user_info","uid", "name","status","score").values(i, name.str(), 0, 1.123);
-        EXPECT_TRUE(testdb.execute(query))<<query.sql();
+        EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     //    query.insert_into("app_info", "AppID", "Name").values(name.str(), name.str());
-    //    EXPECT_TRUE(testdb.execute(query))<<query.sql();
+    //    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     //    query.insert_into("confirm_list", "ID", "Text", "Label", "AppID", "ServerID").values(i+2, name1.str(), 2, name.str(),"s1212");
-    //    EXPECT_TRUE(testdb.execute(query))<<query.sql();
+    //    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
     }
     for(int i = 10; i < 30; i ++) {
         std::stringstream  name;
@@ -105,7 +107,7 @@ TEST_F(GDbTest, insert){
         std::stringstream  name1;
         name1 << "test" << i ;
         query.insert_or_update("user_info","uid", "name", "score").values(i, name.str(), 2.234);
-        EXPECT_TRUE(testdb.execute(query))<<query.sql();
+        EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     }
 }
@@ -115,17 +117,17 @@ TEST_F(GDbTest, update){
         std::stringstream  name;
         name << "test" << i ;
         query.update("user_info").set("status", 1).where("name",name.str());
-        EXPECT_TRUE(testdb.execute(query))<<query.sql();
+        EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
     }
 
     query.update("confirm_list").set("Label", 1).where("AppID","like", "test1%");
-    EXPECT_TRUE(testdb.execute(query))<<query.sql();
+    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     query.update("confirm_list").set("ServerID", "s1215").where("AppID","like", "test1%").or_where("ID", "=", 0);
-    EXPECT_TRUE(testdb.execute(query))<<query.sql();
+    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     query.update("confirm_list").set("Label", 4).set("ServerID", "s1213").where("AppID","like", "test1%").or_where("ID", "=", 0);
-    EXPECT_TRUE(testdb.execute(query))<<query.sql();
+    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 }
 
 TEST_F(GDbTest, select_order_by_limit){
@@ -133,18 +135,18 @@ TEST_F(GDbTest, select_order_by_limit){
     query.select().from("rank_test_data").where("rank_type","=","22011").where("player_id", "<", "8826906").where([](DBQuery& query){
             query.where("score" ,">" ,1000).where("score" ,"<=" ,719036109);
     }).order_by("player_id");
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) { }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) { }).resultVal)<<query.sql();
 
     query.select().from("rank_test_data").where("rank_type","=","22011").where("player_id", "<", "8826906").where([](DBQuery& query){
             query.where("score" ,">" ,1000).where("score" ,"<=" ,719036109);
     }).order_by("player_id", "asc");
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) { }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) { }).resultVal)<<query.sql();
 
     // 此测试案例为错误query语句，执行结果为false,但使用了EXPECT_FALSE宏，因此测试结果为pass,后面有类似案例
     query.select().from("rank_test_data").where("rank_type","=","22011").where("player_id", "<", "8826906").where([](DBQuery& query){
             query.where("score" ,">" ,1000).where("score" ,"<=" ,719036109);
     }).order_by("player_id", "des");
-    EXPECT_FALSE(testdb.test_each(query, [&](ResultSetPtr res) { }))<<query.sql();
+    EXPECT_FALSE(testdb.each(query, [&](ResultSetPtr res) { }).resultVal)<<query.sql()<<testdb.each(query, [&](ResultSetPtr res) { }).errorString;
 
     query.select().from("rank_test_data").where("rank_type","=","108114").where("player_id", ">", "8926906").where([](DBQuery& query){
             query.where("score" ,"<" ,1000).or_where("score" ,">=" ,819036109);
@@ -155,39 +157,39 @@ TEST_F(GDbTest, select_order_by_limit){
     query.select().from("rank_test_data").where("rank_type","=","108114").where("player_id", ">", "8926906").where([](DBQuery& query){
             query.where("score" ,"<" ,1000).or_where("score" ,">=" ,819036109);
     }).order_by("score");
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
          //   std::cout << res->count() << std::endl;
          //   elog("rank type %d ,player id %ld, score %d",res->get_int32("rank_type") , res->get_int64("player_id"), res->get_int32("score"));
 
-        }))<<query.sql();
+        }).resultVal)<<query.sql();
 
     query.select().from("confirm_list").where("Text","like","m%p%").where("Label", ">", 0).where([](DBQuery& query){
             query.where("ID" ,"<" ,100).or_where("ID" ,">" ,1);
     }).order_by("ServerID").limit(12);
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
   //          std::cout << res->count() << std::endl;
   //          elog("ID %d ,Text %s, Label %d, AppID %s, ServerID %s",
   //              res->get_int32("ID"), res->get_string("Text").str(), res->get_int32("Label"), res->get_string("AppID").str(), res->get_string("ServerID").str());
 
-        }))<<query.sql();
+        }).resultVal)<<query.sql();
 
     query.select().from("rank_test_data").where("rank_type","=","108114").where("player_id", ">", "8926906").where([](DBQuery& query){
             query.where("score" ,"<" ,1000).or_where("score" ,">=" ,819036109);
     }).order_by("score").limit(10, 40);
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
        //     std::cout << res->count() << std::endl;
        //     elog("rank type %d ,player id %ld, score %d",res->get_int32("rank_type") , res->get_int64("player_id"), res->get_int32("score"));
 
-        }))<<query.sql();
+        }).resultVal)<<query.sql();
 
     query.select().from("user_info").where("score","=",1.123).where("score",1.1234).where([](DBQuery& query){
             query.where("score" ,"<" ,1.25).or_where("score" ,">=" ,1.111);
     }).order_by("score").limit(10, 40);
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
        //     std::cout << res->count() << std::endl;
        //     elog("rank type %d ,player id %ld, score %d",res->get_int32("rank_type") , res->get_int64("player_id"), res->get_int32("score"));
 
-        }))<<query.sql();
+        }).resultVal)<<query.sql();
 
 }
 
@@ -196,31 +198,31 @@ TEST_F(GDbTest, select_group){
     query.select().from("rank_test_data").where("rank_type","=","22011").where("player_id", "<", "8826906").where([](DBQuery& query){
             query.where("score" ,">" ,1000).where("score" ,"<=" ,719036109);
     }).group_by("player_id");
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) { }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) { }).resultVal)<<query.sql();
 
     query.select().from("rank_test_data").where("rank_type","=","108114").where("player_id", "like", "8826906").where([](DBQuery& query){
             query.where("score" ,">" ,1000).where("score" ,"<=" ,719036109);
     }).group_by("player_id").order_by("score");
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
-        }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
+        }).resultVal)<<query.sql();
 
     query.select().from("rank_test_data").where("rank_type","=","108114").where("player_id", ">", "8926906").where([](DBQuery& query){
             query.where("score" ,"<" ,799040000).where("score" ,">=" ,719036109);
     }).group_by("player_id").order_by("score");
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
         //    std::cout << res->count() << std::endl;
         //    elog("rank type %d ,player id %ld, score %d",res->get_int32("rank_type") , res->get_int64("player_id"), res->get_int32("score"));
 
-        }))<<query.sql();
+        }).resultVal)<<query.sql();
 
     query.select().from("rank_test_data").where("rank_type","=","108114").where("player_id", ">", "8926906").where([](DBQuery& query){
             query.where("score" ,"<" ,799040000).where("score" ,">=" ,719036109);
     }).group_by("player_id").order_by("score").limit(5);
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
         //    std::cout << res->count() << std::endl;
         //    elog("rank type %d ,player id %ld, score %d",res->get_int32("rank_type") , res->get_int64("player_id"), res->get_int32("score"));
 
-        }))<<query.sql();
+        }).resultVal)<<query.sql();
 
 }
 
@@ -229,22 +231,22 @@ TEST_F(GDbTest, select_or_where){
     query.select().from("rank_test_data").where("rank_type","=","22011").where("player_id", "<", "8826906").where([](DBQuery& query){
             query.where("score" ,">" ,1000).where("score" ,"<=" ,719036109);
     });
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) { }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) { }).resultVal)<<query.sql();
 
     query.select().from("rank_test_data").where("rank_type","r22011").where("player_id", "8826906").where([](DBQuery& query){
             query.where("player_id","234j342").or_where("score" ,"<=" ,719036109);
     }).order_by("player_id", "asc");
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) { }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) { }).resultVal)<<query.sql();
 
     query.select().from("rank_test_data").where("rank_type","like","1_8114%").where("player_id", "like", "%张三").where([](DBQuery& query){
             query.where("score" ,"<" ,1000).or_where("score" ,">=" ,719036109);
     });
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) { }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) { }).resultVal)<<query.sql();
 
     query.select().from("rank_test_data").where("rank_type","=","108114").where([](DBQuery& query){
             query.where("player_id", "<", "8826906").or_where("player_id" ,">=" ,"8h826906");
     });
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) { }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) { }).resultVal)<<query.sql();
 
 // select  *  from confirm_list  where  (   ID < 10  and  Label >= 0   and   (  Text like "m%p%"  or  Text like "%p%"    )   )
     query.select().from("confirm_list").where([](DBQuery& query){
@@ -254,12 +256,12 @@ TEST_F(GDbTest, select_or_where){
                 });
             });
 //    std::cout << query.sql() << std::endl;
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
 //
 //            std::cout << res->count() << std::endl;
 //            elog("ID %d ,Text %s, Label %d, AppID %s, ServerID %s, Name %s",
 //                res->get_int32("ID"), res->get_string("Text").str(), res->get_int32("Label"), res->get_string("AppID").str(), res->get_string("ServerID").str(), res->get_string("Name").str());
-                }))<<query.sql();
+                }).resultVal)<<query.sql();
 
 // select  *  from confirm_list  where  (   ID < 10  and  Label >= 0    )  and   (  Text like "m%p%"  or  Text like "%p%"    )
     query.select().from("confirm_list").where([](DBQuery& query){
@@ -269,29 +271,29 @@ TEST_F(GDbTest, select_or_where){
                 });
 
 //    std::cout << query.sql() << std::endl;
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
 
 //            std::cout << res->count() << std::endl;
 //            elog("ID %d ,Text %s, Label %d, AppID %s, ServerID %s, Name %s",
 //                res->get_int32("ID"), res->get_string("Text").str(), res->get_int32("Label"), res->get_string("AppID").str(), res->get_string("ServerID").str(), res->get_string("Name").str());
-                }))<<query.sql();
+                }).resultVal)<<query.sql();
 
 //select  *  from confirm_list  where  (   ID < 10  and  Label >= 0    ) and Text like "m%p%"
     query.select().from("confirm_list").where([](DBQuery& query){
             query.where("ID" ,"<" ,10).where("Label" ,">=" ,0);
     }).where("Text","like","m%p%");
 //    std::cout << query.sql() << std::endl;
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
 
 //            std::cout << res->count() << std::endl;
 //            elog("ID %d ,Text %s, Label %d, AppID %s, ServerID %s, Name %s",
 //                res->get_int32("ID"), res->get_string("Text").str(), res->get_int32("Label"), res->get_string("AppID").str(), res->get_string("ServerID").str(), res->get_string("Name").str());
-                }))<<query.sql();
+                }).resultVal)<<query.sql();
 
     query.select().from("rank_test_data").where("rank_type","=","108114").or_where("player_id", "<", "a8826906").where([](DBQuery& query){
             query.where("score" ,"<" ,1000).or_where("score" ,">=" ,719036109);
     });
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) { }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) { }).resultVal)<<query.sql();
 
     query.select().from("rank_test_data").where("rank_type","=","108114").where([](DBQuery& query){
             query.where("player_id" ,"<" ,8826906).or_where("score" ,">=" ,8826950);
@@ -299,52 +301,52 @@ TEST_F(GDbTest, select_or_where){
         }).where([](DBQuery& query){
             query.where("score" ,"<" ,1000).or_where("score" ,">=" ,719036109);
     });
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) { }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) { }).resultVal)<<query.sql();
 
 }
 
 TEST_F(GDbTest, select_inner_join){
 
     query.select().from("app_info").join("confirm_list", "app_info.AppID", "=", "confirm_list.AppID");
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
-        }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
+        }).resultVal)<<query.sql();
 
     // 下面两个案例是错误输入 EXPECT_FALSE
     query.select().from("app_info").join("confirm_list", "app_info.App", "=", "confirm_list.AppID");
-    EXPECT_FALSE(testdb.test_each(query, [&](ResultSetPtr res) {
-        }))<<query.sql();
+    EXPECT_FALSE(testdb.each(query, [&](ResultSetPtr res) {
+        }).resultVal)<<query.sql();
 
     query.select().from("app_info").join("confirm_list", "AppID", "=", "AppID");
-    EXPECT_FALSE(testdb.test_each(query, [&](ResultSetPtr res) {
-        }))<<query.sql();
+    EXPECT_FALSE(testdb.each(query, [&](ResultSetPtr res) {
+        }).resultVal)<<query.sql();
 
     query.select().from("app_info").inner_join("confirm_list", "app_info.AppID", ">", "confirm_list.AppID");
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
-        }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
+        }).resultVal)<<query.sql();
 
     query.select().from("app_info").inner_join("confirm_list", "app_info.AppID", "=", "confirm_list.AppID");
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
-        }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
+        }).resultVal)<<query.sql();
 
     query.update("confirm_list").inner_join("app_info", "app_info.AppID", "=", "confirm_list.AppID")
         .set("app_info.PrivateKey","127").where("confirm_list.Label", 4);
     std::cout << query.sql() << std::endl;
-    EXPECT_TRUE(testdb.execute(query))<<query.sql();
+    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     query.update("confirm_list a").inner_join("app_info b", "a.AppID", "=", "b.AppID")
         .set("b.PrivateKey","129").where("a.Label", 3);
     std::cout << query.sql() << std::endl;
-    EXPECT_TRUE(testdb.execute(query))<<query.sql();
+    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     query.select().from("app_info").inner_join("confirm_list", "app_info.AppID", "=", "confirm_list.AppID")
         .where("ServerID", ">", "s12121").or_where("app_info.AppID", ">", "1212")
         .group_by("confirm_list.ID").limit(10);
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
 //            std::cout << res->count() << std::endl;
 //            elog("ID %d ,Text %s, Label %d, AppID %s, ServerID %s, Name %s",
 //                res->get_int32("ID"), res->get_string("Text").str(), res->get_int32("Label"), res->get_string("AppID").str(), res->get_string("ServerID").str(), res->get_string("Name").str());
 
-        }))<<query.sql();
+        }).resultVal)<<query.sql();
 
     query.select().from("app_info").inner_join("confirm_list", "app_info.AppID", "=", "confirm_list.AppID")
         .where("ID", ">", 1)
@@ -352,48 +354,48 @@ TEST_F(GDbTest, select_inner_join){
             query.where("ServerID", ">", "s12121").or_where("ServerID", "=", "12121");
                 })
         .where("Label", "=", 2);
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
     //      std::cout << res->count() << std::endl;
     //      elog("ID %d ,Text %s, Label %d, AppID %s, ServerID %s, Name %s",
     //          res->get_int32("ID"), res->get_string("Text").str(), res->get_int32("Label"), res->get_string("AppID").str(), res->get_string("ServerID").str(), res->get_string("Name").str());
 
-        }))<<query.sql();
+        }).resultVal)<<query.sql();
 }
 
 TEST_F(GDbTest, select_left_join){
 
     query.select().from("app_info").left_join("confirm_list", "app_info.AppID", "=", "confirm_list.AppID");
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
-        }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
+        }).resultVal)<<query.sql();
 
 }
 
 TEST_F(GDbTest, select_right_join){
 
     query.select().from("app_info").right_join("confirm_list", "app_info.AppID", "=", "confirm_list.AppID");
-    EXPECT_TRUE(testdb.test_each(query, [&](ResultSetPtr res) {
-        }))<<query.sql();
+    EXPECT_TRUE(testdb.each(query, [&](ResultSetPtr res) {
+        }).resultVal)<<query.sql();
 
 }
 
 TEST_F(GDbTest, del){
 
     query.del("user_info").where("uid",1).or_where("score","=",1.123);
-    EXPECT_TRUE(testdb.execute(query))<<query.sql();
+    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     query.del("user_info").where("uid",2).where("name","=","test1");
-    EXPECT_TRUE(testdb.execute(query))<<query.sql();
+    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     for(int i = 0; i < 30; i ++) {
         std::stringstream  name;
         name << "test" << i ;
         query.del("user_info").where("uid", i);
-        EXPECT_TRUE(testdb.execute(query))<<query.sql();
+        EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
 //        query.del("app_info").where("AppID", name.str());
-//        EXPECT_TRUE(testdb.execute(query))<<query.sql();
+//        EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
 //        query.del("confirm_list").where("AppID", name.str());
-//        EXPECT_TRUE(testdb.execute(query))<<query.sql();
+//        EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
     }
 }

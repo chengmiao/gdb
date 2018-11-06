@@ -23,21 +23,21 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/opt/googletest/googletest/lib)
 add_definitions(-DSPDLOG_FMT_EXTERNAL)
 add_definitions("-Wall -g")
 
-add_executable(test samples/test.cpp ${FMT_SRC})
-add_executable(bench samples/bench.cpp ${FMT_SRC})
-add_executable(dbstmt samples/stmt.cpp ${FMT_SRC})
+#add_executable(test samples/test.cpp ${FMT_SRC})
+#add_executable(bench samples/bench.cpp ${FMT_SRC})
+#add_executable(dbstmt samples/stmt.cpp ${FMT_SRC})
 add_executable(ggtest samples/ggtest.cpp ${FMT_SRC})
 
 target_link_libraries(ggtest mysqlclient)
 target_link_libraries(ggtest fmt)
 target_link_libraries(ggtest libgtest.a -lpthread -lm)
 
-target_link_libraries(test mysqlclient)
-target_link_libraries(test fmt)
-
-target_link_libraries(dbstmt mysqlclient)
-target_link_libraries(dbstmt fmt)
-
-target_link_libraries(bench mysqlclient)
-target_link_libraries(bench fmt)
-target_link_libraries(dbstmt fmt)
+#target_link_libraries(test mysqlclient)
+#target_link_libraries(test fmt)
+#
+#target_link_libraries(dbstmt mysqlclient)
+#target_link_libraries(dbstmt fmt)
+#
+#target_link_libraries(bench mysqlclient)
+#target_link_libraries(bench fmt)
+#target_link_libraries(dbstmt fmt)
