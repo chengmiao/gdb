@@ -29,6 +29,7 @@ namespace gdp
                     mysql_free_result(m_res);
                     m_res = nullptr;
                     m_row = nullptr;
+                    m_field_lens = nullptr;
                 }
             }
 
@@ -39,11 +40,13 @@ namespace gdp
                     if (!m_row)
                     {
                         m_row = mysql_fetch_row(this->m_res);
+                        m_field_lens = mysql_fetch_lengths(this->m_res);
                     }
                     else
                     {
                         mysql_field_seek(this->m_res, 0);
                         m_row = mysql_fetch_row(this->m_res);
+                        m_field_lens = mysql_fetch_lengths(this->m_res);
                     }
                     return shared_from_this();
                 }
@@ -108,13 +111,13 @@ namespace gdp
 
             std::string get_string(const std::string & key )
             {
-                if (m_row)
+                if (m_row && m_field_lens)
                 {
                     auto field =  m_field_map.find(key);
                     if (field != m_field_map.end())
                     {
                         uint32_t idx = field->second;
-                        return m_row[idx];
+                        return std::string(m_row[idx], m_field_lens[idx]);
                     }
                 }
                 return "";
@@ -127,9 +130,12 @@ namespace gdp
                     std::cerr<< "column index out of range" << std::endl;
                     return 0;
                 }
-                if (m_row)
+                if (m_row && m_field_lens)
                 {
-                    return std::string(m_row[idx]);
+                    if(m_row[idx])
+                    {
+                        return std::string(m_row[idx], m_field_lens[idx]);
+                    }
                 }
                 return "";
             }
@@ -198,6 +204,8 @@ namespace gdp
                 if (m_res)
                 {
                     m_row = mysql_fetch_row(m_res);
+                    m_field_lens = mysql_fetch_lengths(m_res);
+
                     if (m_row)
                     {
                         return true;
@@ -224,6 +232,7 @@ namespace gdp
 
             MYSQL_RES* m_res  = nullptr;
             MYSQL_ROW  m_row  = nullptr;
+            unsigned long * m_field_lens = nullptr;
             FieldMap m_field_map;
             uint32_t m_field_num = 0;
         };
