@@ -19,13 +19,6 @@ namespace gdp
                     m_table = tbName;
                 }
 
-                DBQuery & into(const std::string & tbName)
-                {
-                    m_table = tbName;
-                    fmt::format_to(m_sql," {} ",tbName);
-                    return *this;
-                }
-
                 DBQuery & create(const std::string &tbName,bool check = false)
                 {
                     if (check) {
@@ -133,42 +126,6 @@ namespace gdp
                         {
                             fmt::format_to(m_sql," ) " );
                         }
-                        return *this;
-                    }
-
-                template <typename ... Args>
-                    DBQuery & insert(const Args & ... args)
-                    {
-                        clear();
-                        int argLen = sizeof ...(Args);
-                        if (m_table.empty())
-                        {
-                            elog("invalid table name");
-                        }
-
-                        fmt::format_to(m_sql," insert into {} ",m_table );
-
-                        std::stringstream format;
-                        for (int i  = 0; i   < argLen  ; i++)
-                        {
-                            if (i < argLen -1 )
-                            {
-                                format<< " {}, ";
-                            }
-                            else {
-                                format<< " {} ";
-                            }
-                        }
-
-                        if (argLen > 0 ) {
-                            fmt::format_to(m_sql," ( " );
-                            fmt::format_to(m_sql,format.str(),args...);
-                            fmt::format_to(m_sql," ) " );
-                        }
-                        else {
-                            fmt::format_to(m_sql,format.str(),args...);
-                        }
-
                         return *this;
                     }
 
