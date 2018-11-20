@@ -58,7 +58,7 @@ namespace gdp
                 if (idx >= m_field_num)
                 {
                     elog("column index out of range");
-                    return 0;
+                    return default_val;
                 }
                 if (m_row && m_row[idx])
                 {
@@ -113,7 +113,7 @@ namespace gdp
                 return default_val;
             }
 
-            std::string get_string(const std::string & key, std::string default_val = "")
+            std::string get_string(const std::string & key, const std::string & default_val = "")
             {
                 if (m_row && m_field_lens)
                 {
@@ -129,12 +129,12 @@ namespace gdp
                 return default_val;
             }
 
-            std::string get_string_at(uint32_t idx, std::string default_val = "")
+            std::string get_string_at(uint32_t idx, const std::string & default_val = "")
             {
                 if (idx >= m_field_num)
                 {
                     std::cerr<< "column index out of range" << std::endl;
-                    return 0;
+                    return default_val;
                 }
                 if (m_row && m_field_lens && m_row[idx])
                 {
@@ -164,8 +164,8 @@ namespace gdp
             {
                 if (idx >= m_field_num)
                 {
-                    std::cerr<< "column index out of range" << std::endl;
-                    return 0;
+					elog("column index out of range" ); 
+                    return default_val;
                 }
                 if (m_row && m_row[idx])
                 {
@@ -195,7 +195,7 @@ namespace gdp
                 if (idx >= m_field_num)
                 {
                     std::cerr<< "column index out of range" << std::endl;
-                    return 0;
+                    return default_val;
                 }
                 if (m_row && m_row[idx])
                 {
