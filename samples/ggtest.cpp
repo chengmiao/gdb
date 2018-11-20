@@ -31,8 +31,9 @@ protected:
             "create table if not exists user_info ("
             "uid            int             unsigned            not null,"
             "name           varchar(32)     character set utf8  not null,"
-            "status         tinyint         unsigned            ,"
-            "score          float                      not null,"
+            "status         int                     ,"
+            "score          float                      ,"
+            "addr           varchar(32)                     ,"
             "primary key (uid)"
             ") engine=innodb default charset=utf8;"
             );
@@ -50,39 +51,39 @@ int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
-TEST_F(GDbTest, init){
-    testdb.add("10.246.60.86",3306,"root","3456");//"127.0.0.1",3306,"root","123456");
-    EXPECT_FALSE(testdb.init("ai_check").resultVal)<<testdb.init("ai_check").errorString;//"tinydb");
-
-    std::cout << testdb.init("ai_check").errorString << std::endl;
-    std::cout << "空格" << std::endl;
-    testdb.add("10.246.60.86",3306,"roo","123456");//"127.0.0.1",3306,"root","123456");
-    EXPECT_FALSE(testdb.init("ai_check").resultVal)<<testdb.init("ai_check").errorString;//"tinydb");
-
-    testdb.add("10.246.60.86",3306,"root","123456");//"127.0.0.1",3306,"root","123456");
-    EXPECT_TRUE(testdb.init("ai_check").resultVal)<<testdb.init("ai_check").errorString;//"tinydb");
-
-    EXPECT_TRUE(testdb.execute(
-        "create table if not exists user_info ("
-        "uid            int             unsigned            not null,"
-        "name           varchar(32)     character set utf8  not null,"
-        "status         tinyint         unsigned            not null,"
-        "score          float                      not null,"
-        "primary key (uid)"
-        ") engine=innodb default charset=utf8;"
-        ).resultVal)<<query.sql();
-
-    EXPECT_FALSE(testdb.execute(
-        "create table if not exists user_info ("
-        "uid            unsigned            not null,"
-        "name           varchar(32)     character set utf8  not null,"
-        "status         tinyint         unsigned            not null,"
-        "score          float                      not null,"
-        "primary key (uid)"
-        ") engine=innodb default charset=utf8;"
-        ).resultVal)<<query.sql();
-
-}
+//TEST_F(GDbTest, init){
+//    testdb.add("10.246.60.86",3306,"root","3456");//"127.0.0.1",3306,"root","123456");
+//    EXPECT_FALSE(testdb.init("ai_check").resultVal)<<testdb.init("ai_check").errorString;//"tinydb");
+//
+//    std::cout << testdb.init("ai_check").errorString << std::endl;
+//    std::cout << "空格" << std::endl;
+//    testdb.add("10.246.60.86",3306,"roo","123456");//"127.0.0.1",3306,"root","123456");
+//    EXPECT_FALSE(testdb.init("ai_check").resultVal)<<testdb.init("ai_check").errorString;//"tinydb");
+//
+//    testdb.add("10.246.60.86",3306,"root","123456");//"127.0.0.1",3306,"root","123456");
+//    EXPECT_TRUE(testdb.init("ai_check").resultVal)<<testdb.init("ai_check").errorString;//"tinydb");
+//
+//    EXPECT_TRUE(testdb.execute(
+//        "create table if not exists user_info ("
+//        "uid            int             unsigned            not null,"
+//        "name           varchar(32)     character set utf8  not null,"
+//        "status         tinyint         unsigned            not null,"
+//        "score          float                      not null,"
+//        "primary key (uid)"
+//        ") engine=innodb default charset=utf8;"
+//        ).resultVal)<<query.sql();
+//
+//    EXPECT_FALSE(testdb.execute(
+//        "create table if not exists user_info ("
+//        "uid            unsigned            not null,"
+//        "name           varchar(32)     character set utf8  not null,"
+//        "status         tinyint         unsigned            not null,"
+//        "score          float                      not null,"
+//        "primary key (uid)"
+//        ") engine=innodb default charset=utf8;"
+//        ).resultVal)<<query.sql();
+//
+//}
 
 TEST_F(GDbTest, insert){
     for(int i = 0; i < 20; i ++) {
@@ -91,7 +92,7 @@ TEST_F(GDbTest, insert){
 
         std::stringstream  name1;
         name1 << "test" << i ;
-        query.insert_into("user_info","uid", "name","status","score").values(i, name.str(), 0, 1.123);
+        query.insert_or_update("user_info","uid", "name").values(i, name.str());
         EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     //    query.insert_into("app_info", "AppID", "Name").values(name.str(), name.str());
@@ -100,16 +101,39 @@ TEST_F(GDbTest, insert){
     //    query.insert_into("confirm_list", "ID", "Text", "Label", "AppID", "ServerID").values(i+2, name1.str(), 2, name.str(),"s1212");
     //    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
     }
-    for(int i = 10; i < 30; i ++) {
+    for(int i = 10; i < 20; i ++) {
         std::stringstream  name;
         name << "test" << i+10 ;
 
         std::stringstream  name1;
         name1 << "test" << i ;
-        query.insert_or_update("user_info","uid", "name", "score").values(i, name.str(), 2.234);
+        query.insert_or_update("user_info","uid", "name","status", "score", "addr").values(i, name.str(),0, 0, "");
         EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     }
+    for(int i = 20; i < 30; i ++) {
+        std::stringstream  name;
+        name << "test" << i+10 ;
+
+        std::stringstream  name1;
+        name1 << "test" << i ;
+        query.insert_or_update("user_info","uid", "name","status", "score", "addr").values(i, name.str(),0, 2.234, "shanghai");
+        EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
+
+    }
+}
+
+TEST_F(GDbTest, select_repeat){
+    query.select().from("user_info").where("uid", "<", 5);
+    auto res = testdb.get(query);
+    EXPECT_TRUE(res.resultVal);
+
+    query.select().from("user_info").where("uid", "<", 0);
+    EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
+
+                   elog("uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+                }).resultVal)<<query.sql();
+
 }
 
 TEST_F(GDbTest, update){
@@ -128,6 +152,60 @@ TEST_F(GDbTest, update){
 
     query.update("confirm_list").set("Label", 4).set("ServerID", "s1213").where("AppID","like", "test1%").or_where("ID", "=", 0);
     EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
+}
+
+TEST_F(GDbTest, null_0){
+    query.select().from("user_info").where("uid", "<", 5);
+    EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
+
+                   elog("uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+           //        elog("status %d",res->get_int32("status"));
+                }).resultVal)<<query.sql();
+
+    EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
+
+     //              elog("uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+                   elog("status %d",res->get_int32("status"));
+                }).resultVal)<<query.sql();
+
+    query.select().from("user_info").where("uid", "<", 10).where("uid", ">", 4);
+    EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
+
+                   elog("uid %d ,name %s, status %d, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("status"), res->get_int32("score"));
+                }).resultVal)<<query.sql();
+
+    query.select().from("user_info").where("uid", ">", 9);
+    EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
+
+                   elog("uid %d ,name %s, status %d, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("status"), res->get_int32("score"));
+                }).resultVal)<<query.sql();
+
+    query.select().from("user_info").where("uid", "<", 10);
+    EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
+
+                   elog("uid %d ,name %s, score %f",res->get_int32("uid"),res->get_string("name").c_str() , res->get_float("score"));
+           //        elog("status %d",res->get_int32("status"));
+                }).resultVal)<<query.sql();
+
+    EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
+
+     //              elog("uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+                     elog("addr %s",res->get_string("addr").c_str());
+                }).resultVal)<<query.sql();
+
+    query.select().from("user_info").where("uid", "<", 20).where("uid", ">", 9);
+    EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
+
+                   elog("uid %d ,name %s, status %d, score %f",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("status"), res->get_float("score"));
+                   elog("addr %s",res->get_string("addr").c_str());
+                }).resultVal)<<query.sql();
+
+    query.select().from("user_info").where("uid", ">", 19);
+    EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
+
+                   elog("uid %d ,name %s, status %d, score %f",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("status"), res->get_float("score"));
+                   elog("addr %s",res->get_string("addr").c_str());
+                }).resultVal)<<query.sql();
 }
 
 TEST_F(GDbTest, select_order_by_limit){
@@ -378,24 +456,24 @@ TEST_F(GDbTest, select_right_join){
 
 }
 
-TEST_F(GDbTest, del){
-
-    query.del("user_info").where("uid",1).or_where("score","=",1.123);
-    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
-
-    query.del("user_info").where("uid",2).where("name","=","test1");
-    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
-
-    for(int i = 0; i < 30; i ++) {
-        std::stringstream  name;
-        name << "test" << i ;
-        query.del("user_info").where("uid", i);
-        EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
-
-//        query.del("app_info").where("AppID", name.str());
+//TEST_F(GDbTest, del){
+//
+//    query.del("user_info").where("uid",1).or_where("score","=",1.123);
+//    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
+//
+//    query.del("user_info").where("uid",2).where("name","=","test1");
+//    EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
+//
+//    for(int i = 0; i < 30; i ++) {
+//        std::stringstream  name;
+//        name << "test" << i ;
+//        query.del("user_info").where("uid", i);
 //        EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
-
-//        query.del("confirm_list").where("AppID", name.str());
-//        EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
-    }
-}
+//
+////        query.del("app_info").where("AppID", name.str());
+////        EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
+//
+////        query.del("confirm_list").where("AppID", name.str());
+////        EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
+//    }
+//}

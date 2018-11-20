@@ -53,35 +53,35 @@ namespace gdp
                 return nullptr;
             }
 
-            int32_t get_int32_at(uint32_t idx)
+            int32_t get_int32_at(uint32_t idx, int32_t default_val = 0)
             {
                 if (idx >= m_field_num)
                 {
                     elog("column index out of range");
                     return 0;
                 }
-                if (m_row)
+                if (m_row && m_row[idx])
                 {
                     return atoi(m_row[idx]);
                 }
-                return 0;
+                return default_val;
             }
 
-            int64_t get_int64_at(uint32_t idx)
+            int64_t get_int64_at(uint32_t idx, int64_t default_val = 0)
             {
                 if (idx >= m_field_num)
                 {
                     elog("column index out of range");
                     return 0;
                 }
-                if (m_row)
+                if (m_row && m_row[idx])
                 {
                     return atoll(m_row[idx]);
                 }
-                return 0;
+                return default_val;
             }
 
-            int32_t  get_int32(const std::string & key )
+            int32_t  get_int32(const std::string & key , int32_t default_val = 0)
             {
                 if (m_row)
                 {
@@ -89,13 +89,15 @@ namespace gdp
                     if (field != m_field_map.end())
                     {
                         uint32_t idx = field->second;
+                        if(!m_row[idx])
+                            return default_val;
                         return atoi(m_row[idx]);
                     }
                 }
-                return 0;
+                return default_val;
             }
 
-            int64_t  get_int64(const std::string & key )
+            int64_t  get_int64(const std::string & key, int64_t default_val = 0 )
             {
                 if (m_row)
                 {
@@ -103,13 +105,15 @@ namespace gdp
                     if (field != m_field_map.end())
                     {
                         uint32_t idx = field->second;
+                        if(!m_row[idx])
+                            return default_val;
                         return atoll(m_row[idx]);
                     }
                 }
-                return 0;
+                return default_val;
             }
 
-            std::string get_string(const std::string & key )
+            std::string get_string(const std::string & key, std::string default_val = "")
             {
                 if (m_row && m_field_lens)
                 {
@@ -117,30 +121,29 @@ namespace gdp
                     if (field != m_field_map.end())
                     {
                         uint32_t idx = field->second;
+                        if(!m_row[idx])
+                            return default_val;
                         return std::string(m_row[idx], m_field_lens[idx]);
                     }
                 }
-                return "";
+                return default_val;
             }
 
-            std::string get_string_at(uint32_t idx)
+            std::string get_string_at(uint32_t idx, std::string default_val = "")
             {
                 if (idx >= m_field_num)
                 {
                     std::cerr<< "column index out of range" << std::endl;
                     return 0;
                 }
-                if (m_row && m_field_lens)
+                if (m_row && m_field_lens && m_row[idx])
                 {
-                    if(m_row[idx])
-                    {
-                        return std::string(m_row[idx], m_field_lens[idx]);
-                    }
+                    return std::string(m_row[idx], m_field_lens[idx]);
                 }
-                return "";
+                return default_val;
             }
 
-            float get_float(const std::string & key)
+            float get_float(const std::string & key, float default_val = 0)
             {
                 if (m_row)
                 {
@@ -148,28 +151,30 @@ namespace gdp
                     if (field != m_field_map.end())
                     {
                         uint32_t idx = field->second;
+                        if(!m_row[idx])
+                            return default_val;
                         return std::stof(m_row[idx]);
                     }
 
                 }
-                return 0;
+                return default_val;
             }
 
-            float  get_float_at(uint32_t idx)
+            float  get_float_at(uint32_t idx, float default_val = 0)
             {
                 if (idx >= m_field_num)
                 {
                     std::cerr<< "column index out of range" << std::endl;
                     return 0;
                 }
-                if (m_row)
+                if (m_row && m_row[idx])
                 {
                     return std::stof(m_row[idx]);
                 }
-                return 0;
+                return default_val;
             }
 
-            long long get_llong(const std::string & key)
+            long long get_llong(const std::string & key, long long default_val = 0)
             {
                 if (m_row)
                 {
@@ -177,24 +182,26 @@ namespace gdp
                     if (field != m_field_map.end())
                     {
                         uint32_t idx = field->second;
+                        if(!m_row[idx])
+                            return default_val;
                         return std::stoll(m_row[idx]);
                     }
                 }
-                return 0;
+                return default_val;
             }
 
-            float  get_llong_at(uint32_t idx)
+            float  get_llong_at(uint32_t idx, float default_val = 0)
             {
                 if (idx >= m_field_num)
                 {
                     std::cerr<< "column index out of range" << std::endl;
                     return 0;
                 }
-                if (m_row)
+                if (m_row && m_row[idx])
                 {
                     return std::stoll(m_row[idx]);
                 }
-                return 0;
+                return default_val;
             }
 
 
