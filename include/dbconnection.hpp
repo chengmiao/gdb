@@ -145,6 +145,14 @@ class DBConnection {
           return retRes;
 
       }
+      /* //多结果集时使用
+      while (mysql_more_results(m_mysql)){
+          if(mysql_next_result(m_mysql) <= 1){
+            MYSQL_RES *res = mysql_store_result(m_mysql);
+            mysql_free_result(res);
+          }
+      }
+      */
       int ret = mysql_real_query(m_mysql, sql.c_str(), sql.size());
       if (ret != 0) {
           elog("execute query  error %s\n", mysql_error(m_mysql));

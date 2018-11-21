@@ -211,7 +211,7 @@ namespace gdp
                     m_row = mysql_fetch_row(m_res);
                     m_field_lens = mysql_fetch_lengths(m_res);
 
-                    if (m_row)
+                    if (m_row && !isnull())
                     {
                         return true;
                     }
@@ -219,9 +219,30 @@ namespace gdp
                 return false;
             }
 
+            bool isnull()
+            {
+                if(m_field_lens){
+                    for(uint32_t idx = 0; idx < m_field_num; idx++)
+                    {
+                        if(m_field_lens[idx])
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+
             my_ulonglong count()
             {
-                return mysql_num_rows(m_res);
+                my_ulonglong cnt = mysql_num_rows(m_res);
+                if(cnt == 1 && isnull())
+                {
+                    elog("count");
+                    return 0;
+                }
+                return cnt;
             }
 
             private:

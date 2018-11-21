@@ -24,8 +24,8 @@ double cur_time()
 class GDbTest : public ::testing::Test {
 protected:
     virtual void SetUp(){
-        testdb.add("127.0.0.1",3306,"root","123456");//"127.0.0.1",3306,"root","123456");
-        testdb.init("tinydb");
+        testdb.add("10.246.60.86",3306,"root","123456");//"127.0.0.1",3306,"root","123456");
+        testdb.init("ai_check");//"tinydb");
 
         testdb.execute(
             "create table if not exists user_info ("
@@ -34,6 +34,15 @@ protected:
             "status         int                     ,"
             "score          float                      ,"
             "addr           varchar(32)                     ,"
+            "primary key (uid)"
+            ") engine=innodb default charset=utf8;"
+            );
+
+        testdb.execute(
+            "create table if not exists addr_info ("
+            "uid            int             unsigned            not null,"
+            "km             int             ,"
+            "addr           varchar(32)     not null        ,"
             "primary key (uid)"
             ") engine=innodb default charset=utf8;"
             );
@@ -127,34 +136,49 @@ TEST_F(GDbTest, select_repeat){
     query.select().from("user_info").where("uid", "<", 5);
     auto result = testdb.get(query);
     EXPECT_TRUE(result.resultVal);
+    std::cout<<"next:"<<result.resultVal->next()<<std::endl;
     auto res = result.resultVal->first();
-    elog("first: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    elog("count: %llu, first: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+
+    std::string str = "select user_info.uid,sum(addr_info.km) from user_info,addr_info where user_info.uid = addr_info.uid and user_info.uid = 1";
+    result = testdb.get(str);
+    EXPECT_TRUE(result.resultVal);
+    if(result.resultVal){
+        std::cout<<"next:"<<result.resultVal->next()<<std::endl;
+        res = result.resultVal->first();
+        std::cout<<"res:"<< res<<std::endl;
+        elog("count: %llu, first: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    }
 
     query.select().from("user_info").where("uid", "<", 0);
     result = testdb.get(query);
     EXPECT_TRUE(result.resultVal);
     res = result.resultVal->first();
-    elog("first3: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    std::cout<<"next:"<<result.resultVal->next()<<std::endl;
+    elog("count: %llu, first3: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
     res = res->first();
-    elog("first4: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    elog("count: %llu, first4: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
 
     query.select().from("user_info").where("uid", "<", 5);
     result = testdb.first(query);
     EXPECT_TRUE(result.resultVal);
-//    res = result.resultVal;
-//    elog("first: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
-//    res = res->first();
-//    elog("first: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    std::cout<<"next:"<<result.resultVal->next()<<std::endl;
+    res = result.resultVal;
+    elog("count: %llu, first: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    res = res->first();
+    elog("first: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
 
     query.select().from("user_info").where("uid", "<", 0);
     result = testdb.first(query);
     EXPECT_TRUE(result.resultVal);
     res = result.resultVal;
-    elog("first3: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    std::cout<<"next:"<<result.resultVal->next()<<std::endl;
+    elog("count: %llu, first3: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
     res = res->first();
-    elog("first4: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    elog("count: %llu, first4: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+
 }
-/*
+
 TEST_F(GDbTest, update){
     for(int i = 5; i < 10; i ++) {
         std::stringstream  name;
@@ -427,12 +451,12 @@ TEST_F(GDbTest, select_inner_join){
 
     query.update("confirm_list").inner_join("app_info", "app_info.AppID", "=", "confirm_list.AppID")
         .set("app_info.PrivateKey","127").where("confirm_list.Label", 4);
-    std::cout << query.sql() << std::endl;
+  //  std::cout << query.sql() << std::endl;
     EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     query.update("confirm_list a").inner_join("app_info b", "a.AppID", "=", "b.AppID")
         .set("b.PrivateKey","129").where("a.Label", 3);
-    std::cout << query.sql() << std::endl;
+  //  std::cout << query.sql() << std::endl;
     EXPECT_TRUE(testdb.execute(query).resultVal)<<query.sql();
 
     query.select().from("app_info").inner_join("confirm_list", "app_info.AppID", "=", "confirm_list.AppID")
@@ -474,7 +498,7 @@ TEST_F(GDbTest, select_right_join){
         }).resultVal)<<query.sql();
 
 }
-*/
+
 //TEST_F(GDbTest, del){
 //
 //    query.del("user_info").where("uid",1).or_where("score","=",1.123);
