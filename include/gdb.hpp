@@ -147,8 +147,10 @@ namespace gdp
                     }
                     if (is_valid())
                     {
+                       // elog("get return connectiion->query");
                         return m_default.connection->query(query.sql());
                     }
+                    //elog("get return nullptr");
                     retRes.resultVal = nullptr;
                     retRes.errorString = "failed to connect to database";
                     return retRes;

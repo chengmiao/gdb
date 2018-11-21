@@ -24,8 +24,8 @@ double cur_time()
 class GDbTest : public ::testing::Test {
 protected:
     virtual void SetUp(){
-        testdb.add("10.246.60.86",3306,"root","123456");//"127.0.0.1",3306,"root","123456");
-        testdb.init("ai_check");//"tinydb");
+        testdb.add("127.0.0.1",3306,"root","123456");//"127.0.0.1",3306,"root","123456");
+        testdb.init("tinydb");
 
         testdb.execute(
             "create table if not exists user_info ("
@@ -125,17 +125,36 @@ TEST_F(GDbTest, insert){
 
 TEST_F(GDbTest, select_repeat){
     query.select().from("user_info").where("uid", "<", 5);
-    auto res = testdb.get(query);
-    EXPECT_TRUE(res.resultVal);
+    auto result = testdb.get(query);
+    EXPECT_TRUE(result.resultVal);
+    auto res = result.resultVal->first();
+    elog("first: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
 
     query.select().from("user_info").where("uid", "<", 0);
-    EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
+    result = testdb.get(query);
+    EXPECT_TRUE(result.resultVal);
+    res = result.resultVal->first();
+    elog("first3: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    res = res->first();
+    elog("first4: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
 
-                   elog("uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
-                }).resultVal)<<query.sql();
+    query.select().from("user_info").where("uid", "<", 5);
+    result = testdb.first(query);
+    EXPECT_TRUE(result.resultVal);
+//    res = result.resultVal;
+//    elog("first: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+//    res = res->first();
+//    elog("first: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
 
+    query.select().from("user_info").where("uid", "<", 0);
+    result = testdb.first(query);
+    EXPECT_TRUE(result.resultVal);
+    res = result.resultVal;
+    elog("first3: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    res = res->first();
+    elog("first4: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
 }
-
+/*
 TEST_F(GDbTest, update){
     for(int i = 5; i < 10; i ++) {
         std::stringstream  name;
@@ -158,53 +177,53 @@ TEST_F(GDbTest, null_0){
     query.select().from("user_info").where("uid", "<", 5);
     EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
 
-                   elog("uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+//                   elog("uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
            //        elog("status %d",res->get_int32("status"));
                 }).resultVal)<<query.sql();
 
     EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
 
      //              elog("uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
-                   elog("status %d",res->get_int32("status"));
+//                   elog("status %d",res->get_int32("status"));
                 }).resultVal)<<query.sql();
 
     query.select().from("user_info").where("uid", "<", 10).where("uid", ">", 4);
     EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
 
-                   elog("uid %d ,name %s, status %d, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("status"), res->get_int32("score"));
+//                   elog("uid %d ,name %s, status %d, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("status"), res->get_int32("score"));
                 }).resultVal)<<query.sql();
 
     query.select().from("user_info").where("uid", ">", 9);
     EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
 
-                   elog("uid %d ,name %s, status %d, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("status"), res->get_int32("score"));
+//                   elog("uid %d ,name %s, status %d, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("status"), res->get_int32("score"));
                 }).resultVal)<<query.sql();
 
     query.select().from("user_info").where("uid", "<", 10);
     EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
 
-                   elog("uid %d ,name %s, score %f",res->get_int32("uid"),res->get_string("name").c_str() , res->get_float("score"));
+//                   elog("uid %d ,name %s, score %f",res->get_int32("uid"),res->get_string("name").c_str() , res->get_float("score"));
            //        elog("status %d",res->get_int32("status"));
                 }).resultVal)<<query.sql();
 
     EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
 
      //              elog("uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
-                     elog("addr %s",res->get_string("addr").c_str());
+//                     elog("addr %s",res->get_string("addr").c_str());
                 }).resultVal)<<query.sql();
 
     query.select().from("user_info").where("uid", "<", 20).where("uid", ">", 9);
     EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
 
-                   elog("uid %d ,name %s, status %d, score %f",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("status"), res->get_float("score"));
-                   elog("addr %s",res->get_string("addr").c_str());
+//                   elog("uid %d ,name %s, status %d, score %f",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("status"), res->get_float("score"));
+//                   elog("addr %s",res->get_string("addr").c_str());
                 }).resultVal)<<query.sql();
 
     query.select().from("user_info").where("uid", ">", 19);
     EXPECT_TRUE(testdb.each(query,[&](ResultSetPtr res){
 
-                   elog("uid %d ,name %s, status %d, score %f",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("status"), res->get_float("score"));
-                   elog("addr %s",res->get_string("addr").c_str());
+//                   elog("uid %d ,name %s, status %d, score %f",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("status"), res->get_float("score"));
+//                   elog("addr %s",res->get_string("addr").c_str());
                 }).resultVal)<<query.sql();
 }
 
@@ -455,7 +474,7 @@ TEST_F(GDbTest, select_right_join){
         }).resultVal)<<query.sql();
 
 }
-
+*/
 //TEST_F(GDbTest, del){
 //
 //    query.del("user_info").where("uid",1).or_where("score","=",1.123);

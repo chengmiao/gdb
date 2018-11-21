@@ -44,7 +44,7 @@ namespace gdp
                     }
                     else
                     {
-                        mysql_field_seek(this->m_res, 0);
+                        mysql_field_seek(this->m_res, 0);   //以当前m_res向后偏移 从第一个字段返回
                         m_row = mysql_fetch_row(this->m_res);
                         m_field_lens = mysql_fetch_lengths(this->m_res);
                     }
@@ -72,7 +72,7 @@ namespace gdp
                 if (idx >= m_field_num)
                 {
                     elog("column index out of range");
-                    return 0;
+                    return default_val;
                 }
                 if (m_row && m_row[idx])
                 {
@@ -133,7 +133,7 @@ namespace gdp
             {
                 if (idx >= m_field_num)
                 {
-                    std::cerr<< "column index out of range" << std::endl;
+                    elog("column index out of range");
                     return default_val;
                 }
                 if (m_row && m_field_lens && m_row[idx])
@@ -155,7 +155,6 @@ namespace gdp
                             return default_val;
                         return std::stof(m_row[idx]);
                     }
-
                 }
                 return default_val;
             }
@@ -164,7 +163,7 @@ namespace gdp
             {
                 if (idx >= m_field_num)
                 {
-					elog("column index out of range" ); 
+					elog("column index out of range" );
                     return default_val;
                 }
                 if (m_row && m_row[idx])
@@ -194,7 +193,7 @@ namespace gdp
             {
                 if (idx >= m_field_num)
                 {
-                    std::cerr<< "column index out of range" << std::endl;
+                    elog("column index out of range");
                     return default_val;
                 }
                 if (m_row && m_row[idx])
@@ -203,7 +202,6 @@ namespace gdp
                 }
                 return default_val;
             }
-
 
 
             bool next()
@@ -229,19 +227,18 @@ namespace gdp
             private:
             void load_field_map()
             {
-                uint32_t num  = mysql_num_fields(m_res);
-                MYSQL_FIELD * fields = mysql_fetch_fields(m_res);
-                for(uint32_t i =0; i < num ; i ++)
+                MYSQL_FIELD * fields = mysql_fetch_fields(m_res);   //获取每个字段的详细信息
+                for(uint32_t i =0; i < m_field_num; i ++)
                 {
                     m_field_map[fields[i].name ]  = i ;
                 }
             }
 
-            MYSQL_RES* m_res  = nullptr;
-            MYSQL_ROW  m_row  = nullptr;
-            unsigned long * m_field_lens = nullptr;
-            FieldMap m_field_map;
-            uint32_t m_field_num = 0;
+            MYSQL_RES* m_res  = nullptr;    //结果集指针
+            MYSQL_ROW  m_row  = nullptr;    //一行结果
+            unsigned long * m_field_lens = nullptr;     //每个字段的长度
+            FieldMap m_field_map;   //每个字段的名字
+            uint32_t m_field_num = 0;   //字段个数
         };
 
         typedef std::shared_ptr<ResultSet> ResultSetPtr;
