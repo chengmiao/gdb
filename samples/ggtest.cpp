@@ -136,46 +136,40 @@ TEST_F(GDbTest, select_repeat){
     query.select().from("user_info").where("uid", "<", 5);
     auto result = testdb.get(query);
     EXPECT_TRUE(result.resultVal);
-    std::cout<<"next:"<<result.resultVal->next()<<std::endl;
+    EXPECT_TRUE(result.resultVal->next());
     auto res = result.resultVal->first();
-    elog("count: %llu, first: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    dlog("count: %llu, first: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
 
     std::string str = "select user_info.uid,sum(addr_info.km) from user_info,addr_info where user_info.uid = addr_info.uid and user_info.uid = 1";
     result = testdb.get(str);
     EXPECT_TRUE(result.resultVal);
     if(result.resultVal){
-        std::cout<<"next:"<<result.resultVal->next()<<std::endl;
+        EXPECT_FALSE(result.resultVal->next());
         res = result.resultVal->first();
-        std::cout<<"res:"<< res<<std::endl;
-        elog("count: %llu, first: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+        if(res)
+            dlog("count: %llu, first: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
     }
 
     query.select().from("user_info").where("uid", "<", 0);
     result = testdb.get(query);
     EXPECT_TRUE(result.resultVal);
+    EXPECT_FALSE(result.resultVal->next());
     res = result.resultVal->first();
-    std::cout<<"next:"<<result.resultVal->next()<<std::endl;
-    elog("count: %llu, first3: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
-    res = res->first();
-    elog("count: %llu, first4: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    if(res)
+        dlog("count: %llu, first3: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
 
     query.select().from("user_info").where("uid", "<", 5);
     result = testdb.first(query);
     EXPECT_TRUE(result.resultVal);
-    std::cout<<"next:"<<result.resultVal->next()<<std::endl;
+    EXPECT_TRUE(result.resultVal->next());
     res = result.resultVal;
-    elog("count: %llu, first: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    dlog("count: %llu, first: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
     res = res->first();
-    elog("first: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    dlog("first: uid %d ,name %s, score %d",res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
 
     query.select().from("user_info").where("uid", "<", 0);
     result = testdb.first(query);
-    EXPECT_TRUE(result.resultVal);
-    res = result.resultVal;
-    std::cout<<"next:"<<result.resultVal->next()<<std::endl;
-    elog("count: %llu, first3: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
-    res = res->first();
-    elog("count: %llu, first4: uid %d ,name %s, score %d",res->count(), res->get_int32("uid"),res->get_string("name").c_str() , res->get_int32("score"));
+    EXPECT_FALSE(result.resultVal);
 
 }
 

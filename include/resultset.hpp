@@ -48,7 +48,8 @@ namespace gdp
                         m_row = mysql_fetch_row(this->m_res);
                         m_field_lens = mysql_fetch_lengths(this->m_res);
                     }
-                    return shared_from_this();
+                    if(!isnull())
+                        return shared_from_this();
                 }
                 return nullptr;
             }
@@ -239,7 +240,6 @@ namespace gdp
                 my_ulonglong cnt = mysql_num_rows(m_res);
                 if(cnt == 1 && isnull())
                 {
-                    elog("count");
                     return 0;
                 }
                 return cnt;
