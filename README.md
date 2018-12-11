@@ -18,8 +18,8 @@
 
 ```cpp
 GDb db("127.0.0.1",3306,"root","passwd","tinydb"); //声明一个数据库实例
-DBQueue queue; 
-queue.table("users").insert("name", "age","sex","phone","address").values( name.c_str() ,
+DBQuery query; 
+query.insert_into("users","name", "age","sex","phone","address").values( name.c_str() ,
     20+i,1,"18930878762","shanghai"); //组装sql语句
 
 db.execute(queue); // 执行sql语句
