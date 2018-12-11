@@ -21,7 +21,7 @@ GDb  db("127.0.0.1",3306,"root","passwd","tinydb");
 DBQuery query; 
 query.insert_into("users","name", "age","sex","phone","address").values( name.c_str(),
     20+i,1,"18930878762","shanghai"); 
-db.execute(queue); 
+db.execute(query); 
 ```
 
 with this line above , it executes  a sql : 
