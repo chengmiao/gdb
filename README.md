@@ -32,12 +32,12 @@ db.execute(query); // 执行sql语句
         框架对底层c接口进行了封装，使用智能指针包装了内存的申请和释放，应用层无需担心内存泄漏问题。 
 
         ```cpp
-        MysqlSetPtr mSet = db.execute(queue).get(); 
+        MysqlSetPtr mSet = db.execute(query).get(); 
         ```
 
     2. 直接通过lambda函数获取结果集
         ```cpp
-        db.execute(queue).get([](sql::ResultSet & rstSet){ 
+        db.execute(query).get([](sql::ResultSet & rstSet){ 
         //process result set 
         }); 
         ```
