@@ -118,8 +118,16 @@ namespace gdp
                             }
 
                             ++i;
-                            fmt::format_to(m_sql, format.str(), static_cast<v.get_type()>(v));
-                            
+                            auto type = v.get_type();
+                            switch (type) 
+                            {
+	                            case sol::type::string:
+                                    if (v.is<std::string>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), v.as<std::string>());
+                                    }
+                                    break;
+			                }
                         }
 
                         if (argLen > 0)
