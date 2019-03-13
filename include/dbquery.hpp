@@ -287,7 +287,6 @@ namespace gdp
 			                }
                         }
 
-                        fmt::format_to(m_sql,format.str(),args...);
                         dlog("sql: %s",fmt::to_string(m_sql).c_str());
                         return *this;
                     }
