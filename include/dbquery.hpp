@@ -489,6 +489,47 @@ namespace gdp
                         return *this;
                     }
 
+                    DBQuery & to_lua_select(sol::variadic_args args)
+                    {
+                        clear();
+                        int argLen = args.size();
+
+                        fmt::format_to(m_sql,"select ");
+                        if (argLen > 0)
+                        {
+                            int i = 0;
+                            for ( auto v : args)
+                            {
+                                std::stringstream format;
+                                if (i < argLen -1 )
+                                {
+                                    format<< " {}, ";
+                                }
+                                else {
+                                    format<< " {} ";
+                                }
+
+                                ++i;
+                                auto type = v.get_type();
+                                switch (type) 
+                                {
+	                                case sol::type::string:
+                                        if (v.is<std::string>())
+                                        {
+                                            fmt::format_to(m_sql, format.str(), v.as<std::string>());
+                                        }
+                                        break;
+			                    }
+                            }
+                        }
+                        else
+                        {
+
+                            fmt::format_to(m_sql," * ");
+                        }
+                        return *this;
+                    }
+
                 DBQuery & select(const std::string & selData)
                 {
                     clear();
@@ -547,6 +588,36 @@ namespace gdp
                     DBQuery & where(const std::string & key , const std::string & op, const T   & term)
                     {
                         std::string termStr = fmt::format(" {} {} {} ", key , op, printarg(term));
+                        this->_where(termStr);
+                        return *this;
+                    }
+
+                    DBQuery & to_lua_where(const std::string & key , const std::string & op, sol::variadic_args args)
+                    {
+                        auto type = args.get_type();
+                        std::string termStr;
+                        switch (type) 
+                        {
+	                        case sol::type::string:
+                                if (args.is<std::string>())
+                                {
+                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args.as<std::string>()));
+                                }
+                                break;
+                            case sol::type::number:
+                                if (args.is<int32_t>())
+                                {
+                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args.as<int32_t>()));
+                                }
+                                else if (args.is<double>())
+                                {
+                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args.as<double>()));
+                                }
+                                break;
+                            default:
+                                break;
+			            }
+
                         this->_where(termStr);
                         return *this;
                     }
