@@ -106,10 +106,11 @@ namespace gdp
                         {
                             fmt::format_to(m_sql, " ( ") ;
                         }
-                        std::stringstream format;
+
                         int i = 0;
                         for ( auto v : args)
                         {
+                            std::stringstream format;
                             if (i < argLen -1 ) {
                                 format<< " {}, ";
                             }
@@ -300,6 +301,57 @@ namespace gdp
                             }
                         }
                         fmt::format_to(m_sql,format.str(),printarg(args)...);
+                        fmt::format_to(m_sql," ) " );
+
+                        if(m_bUpset)
+                        {
+                            fmt::format_to(m_sql," on duplicate key update " );
+                            fmt::format_to(m_sql,fmt::to_string(m_upsetDupSql));
+                        }
+                        return *this;
+                    }
+
+                    DBQuery & to_lua_values(sol::variadic_args args)
+                    {
+                        int argLen = args.size();
+                        fmt::format_to(m_sql," values ( ");
+
+                        int i = 0;
+                        for ( auto v : args)
+                        {
+                            std::stringstream format;
+                            if (i < argLen -1 ) {
+                                format<< " {}, ";
+                            }
+                            else {
+                                format<< " {} ";
+                            }
+
+                            ++i;
+                            auto type = v.get_type();
+                            switch (type) 
+                            {
+	                            case sol::type::string:
+                                    if (v.is<std::string>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), printarg(v.as<std::string>()));
+                                    }
+                                    break;
+                                case sol::type::number:
+                                    if (v.is<int32_t>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), printarg(v.as<int32_t>()));
+                                    }
+                                    else if (v.is<double>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), printarg(v.as<double>()));
+                                    }
+                                    break;
+                                default:
+                                    break;
+			                }
+                        }
+
                         fmt::format_to(m_sql," ) " );
 
                         if(m_bUpset)
