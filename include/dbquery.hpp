@@ -173,6 +173,54 @@ namespace gdp
                         return *this;
                     }
 
+                    DBQuery & to_lua_insert_or_update(const std::string & tbName , sol::variadic_args args)
+                    {
+                        clear();
+                        m_bUpset = true;
+                        int argLen = args.size();
+                        m_table = tbName;
+                        fmt::format_to(m_sql,"insert into {} " ,tbName);
+                        if (argLen > 0 )
+                        {
+                            fmt::format_to(m_sql, " ( ") ;
+                        }
+                     
+                        int i = 0;
+                        for ( auto v : args)
+                        {
+                            std::stringstream format;
+                            std::stringstream duplicate;
+
+                            if (i < argLen -1 ) {
+                                format<< " {}, ";
+                                duplicate<<" {" << i << "}=values({" << i << "}),";
+                            }
+                            else {
+                                format<< " {} ";
+                                duplicate<<" {" << i << "}=values({" << i << "})";
+                            }
+
+                            ++i;
+                            auto type = v.get_type();
+                            switch (type) 
+                            {
+	                            case sol::type::string:
+                                    if (v.is<std::string>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), v.as<std::string>());
+                                        fmt::format_to(m_upsetDupSql, duplicate.str(), v.as<std::string>());
+                                    }
+                                    break;
+			                }
+                        }
+
+                        if (argLen > 0)
+                        {
+                            fmt::format_to(m_sql," ) " );
+                        }
+                        return *this;
+                    }
+
                 template <typename ... Args>
                     DBQuery & update (const std::string & tbName,const Args & ... args)
                     {
@@ -189,6 +237,54 @@ namespace gdp
                             else {
                                 format<< " {} ";
                             }
+                        }
+
+                        fmt::format_to(m_sql,format.str(),args...);
+                        dlog("sql: %s",fmt::to_string(m_sql).c_str());
+                        return *this;
+                    }
+
+                    DBQuery & to_lua_update (const std::string & tbName, sol::variadic_args args)
+                    {
+                        clear();
+                        int argLen = args.size();
+                        m_table = tbName ;
+                        fmt::format_to(m_sql," update {} ",tbName);
+
+                        int i = 0;
+                        for ( auto v : args)
+                        {
+                            std::stringstream format;
+                            if (i < argLen -1 ) {
+                                format<< " {}, ";
+                            }
+                            else {
+                                format<< " {} ";
+                            }
+
+                            ++i;
+                            auto type = v.get_type();
+                            switch (type) 
+                            {
+	                            case sol::type::string:
+                                    if (v.is<std::string>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), v.as<std::string>());
+                                    }
+                                    break;
+                                case sol::type::number:
+                                    if (v.is<int32_t>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), v.as<int32_t>());
+                                    }
+                                    else if (v.is<double>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), v.as<double>());
+                                    }
+                                    break;
+                                default:
+                                    break;
+			                }
                         }
 
                         fmt::format_to(m_sql,format.str(),args...);
