@@ -503,6 +503,7 @@ namespace gdp
                     return *this;
                 }
 
+
                 DBQuery & where(SelfHandler self)
                 {
                     where_levels ++;
