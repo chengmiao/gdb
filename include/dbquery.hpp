@@ -5,6 +5,8 @@
 #include <stack>
 #include <sstream>
 
+#include "sol.hpp"
+
 namespace gdp
 {
     namespace db
@@ -86,6 +88,38 @@ namespace gdp
                             }
                         }
                         fmt::format_to(m_sql,format.str(),args...);
+
+                        if (argLen > 0)
+                        {
+                            fmt::format_to(m_sql," ) " );
+                        }
+                        return *this;
+                    }
+
+                    DBQuery & to_lua_insert_into(const std::string & tbName, sol::variadic_args args)
+                    {
+                        clear();
+                        int argLen = args.size();
+                        m_table = tbName;
+                        fmt::format_to(m_sql,"insert into {} " ,tbName);
+                        if (argLen > 0 )
+                        {
+                            fmt::format_to(m_sql, " ( ") ;
+                        }
+                        std::stringstream format;
+                        int i = 0;
+                        for ( auto v : args)
+                        {
+                            if (i < argLen -1 ) {
+                                format<< " {}, ";
+                            }
+                            else {
+                                format<< " {} ";
+                            }
+
+                            ++i;
+                            fmt::format_to(m_sql, format.str(), v);
+                        }
 
                         if (argLen > 0)
                         {
