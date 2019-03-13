@@ -594,24 +594,24 @@ namespace gdp
 
                     DBQuery & to_lua_where(const std::string & key , const std::string & op, sol::variadic_args args)
                     {
-                        auto type = args.get_type();
+                        auto type = args[0].get_type();
                         std::string termStr;
                         switch (type) 
                         {
 	                        case sol::type::string:
-                                if (args.is<std::string>())
+                                if (args[0].is<std::string>())
                                 {
-                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args.as<std::string>()));
+                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args[0].as<std::string>()));
                                 }
                                 break;
                             case sol::type::number:
                                 if (args.is<int32_t>())
                                 {
-                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args.as<int32_t>()));
+                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args[0].as<int32_t>()));
                                 }
                                 else if (args.is<double>())
                                 {
-                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args.as<double>()));
+                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args[0].as<double>()));
                                 }
                                 break;
                             default:
