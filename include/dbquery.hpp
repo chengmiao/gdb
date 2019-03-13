@@ -118,7 +118,7 @@ namespace gdp
                             }
 
                             ++i;
-                            fmt::format_to(m_sql, format.str(), v);
+                            fmt::format_to(m_sql, format.str(), static_cast<v.get_type()>(v));
                         }
 
                         if (argLen > 0)
