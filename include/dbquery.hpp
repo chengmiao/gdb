@@ -605,11 +605,11 @@ namespace gdp
                                 }
                                 break;
                             case sol::type::number:
-                                if (args.is<int32_t>())
+                                if (args[0].is<int32_t>())
                                 {
                                     termStr = fmt::format(" {} {} {} ", key , op, printarg(args[0].as<int32_t>()));
                                 }
-                                else if (args.is<double>())
+                                else if (args[0].is<double>())
                                 {
                                     termStr = fmt::format(" {} {} {} ", key , op, printarg(args[0].as<double>()));
                                 }
