@@ -96,48 +96,6 @@ namespace gdp
                         return *this;
                     }
 
-                    DBQuery & to_lua_insert_into(const std::string & tbName, sol::variadic_args args)
-                    {
-                        clear();
-                        int argLen = args.size();
-                        m_table = tbName;
-                        fmt::format_to(m_sql,"insert into {} " ,tbName);
-                        if (argLen > 0 )
-                        {
-                            fmt::format_to(m_sql, " ( ") ;
-                        }
-
-                        int i = 0;
-                        for ( auto v : args)
-                        {
-                            std::stringstream format;
-                            if (i < argLen -1 ) {
-                                format<< " {}, ";
-                            }
-                            else {
-                                format<< " {} ";
-                            }
-
-                            ++i;
-                            auto type = v.get_type();
-                            switch (type) 
-                            {
-	                            case sol::type::string:
-                                    if (v.is<std::string>())
-                                    {
-                                        fmt::format_to(m_sql, format.str(), v.as<std::string>());
-                                    }
-                                    break;
-			                }
-                        }
-
-                        if (argLen > 0)
-                        {
-                            fmt::format_to(m_sql," ) " );
-                        }
-                        return *this;
-                    }
-
                 template <typename ... Args>
                     DBQuery & insert_or_update(const std::string & tbName ,const Args & ... args)
                     {
@@ -173,54 +131,6 @@ namespace gdp
                         return *this;
                     }
 
-                    DBQuery & to_lua_insert_or_update(const std::string & tbName , sol::variadic_args args)
-                    {
-                        clear();
-                        m_bUpset = true;
-                        int argLen = args.size();
-                        m_table = tbName;
-                        fmt::format_to(m_sql,"insert into {} " ,tbName);
-                        if (argLen > 0 )
-                        {
-                            fmt::format_to(m_sql, " ( ") ;
-                        }
-                     
-                        int i = 0;
-                        for ( auto v : args)
-                        {
-                            std::stringstream format;
-                            std::stringstream duplicate;
-
-                            if (i < argLen -1 ) {
-                                format<< " {}, ";
-                                duplicate<<" {" << i << "}=values({" << i << "}),";
-                            }
-                            else {
-                                format<< " {} ";
-                                duplicate<<" {" << i << "}=values({" << i << "})";
-                            }
-
-                            ++i;
-                            auto type = v.get_type();
-                            switch (type) 
-                            {
-	                            case sol::type::string:
-                                    if (v.is<std::string>())
-                                    {
-                                        fmt::format_to(m_sql, format.str(), v.as<std::string>());
-                                        fmt::format_to(m_upsetDupSql, duplicate.str(), v.as<std::string>());
-                                    }
-                                    break;
-			                }
-                        }
-
-                        if (argLen > 0)
-                        {
-                            fmt::format_to(m_sql," ) " );
-                        }
-                        return *this;
-                    }
-
                 template <typename ... Args>
                     DBQuery & update (const std::string & tbName,const Args & ... args)
                     {
@@ -240,53 +150,6 @@ namespace gdp
                         }
 
                         fmt::format_to(m_sql,format.str(),args...);
-                        dlog("sql: %s",fmt::to_string(m_sql).c_str());
-                        return *this;
-                    }
-
-                    DBQuery & to_lua_update (const std::string & tbName, sol::variadic_args args)
-                    {
-                        clear();
-                        int argLen = args.size();
-                        m_table = tbName ;
-                        fmt::format_to(m_sql," update {} ",tbName);
-
-                        int i = 0;
-                        for ( auto v : args)
-                        {
-                            std::stringstream format;
-                            if (i < argLen -1 ) {
-                                format<< " {}, ";
-                            }
-                            else {
-                                format<< " {} ";
-                            }
-
-                            ++i;
-                            auto type = v.get_type();
-                            switch (type) 
-                            {
-	                            case sol::type::string:
-                                    if (v.is<std::string>())
-                                    {
-                                        fmt::format_to(m_sql, format.str(), v.as<std::string>());
-                                    }
-                                    break;
-                                case sol::type::number:
-                                    if (v.is<int32_t>())
-                                    {
-                                        fmt::format_to(m_sql, format.str(), v.as<int32_t>());
-                                    }
-                                    else if (v.is<double>())
-                                    {
-                                        fmt::format_to(m_sql, format.str(), v.as<double>());
-                                    }
-                                    break;
-                                default:
-                                    break;
-			                }
-                        }
-
                         dlog("sql: %s",fmt::to_string(m_sql).c_str());
                         return *this;
                     }
@@ -406,59 +269,6 @@ namespace gdp
                         return *this;
                     }
 
-                    DBQuery & to_lua_values(sol::variadic_args args)
-                    {
-                        int argLen = args.size();
-                        fmt::format_to(m_sql," values ( ");
-
-                        int i = 0;
-                        for ( auto v : args)
-                        {
-                            std::stringstream format;
-                            if (i < argLen -1 ) {
-                                format<< " {}, ";
-                            }
-                            else {
-                                format<< " {} ";
-                            }
-
-                            ++i;
-                            auto type = v.get_type();
-                            switch (type) 
-                            {
-	                            case sol::type::string:
-                                    if (v.is<std::string>())
-                                    {
-                                        fmt::format_to(m_sql, format.str(), printarg(v.as<std::string>()));
-                                    }
-                                    break;
-                                case sol::type::number:
-                                    if (v.is<int32_t>())
-                                    {
-                                        fmt::format_to(m_sql, format.str(), printarg(v.as<int32_t>()));
-                                    }
-                                    else if (v.is<double>())
-                                    {
-                                        fmt::format_to(m_sql, format.str(), printarg(v.as<double>()));
-                                    }
-                                    break;
-                                default:
-                                    break;
-			                }
-                        }
-
-                        fmt::format_to(m_sql," ) " );
-
-                        if(m_bUpset)
-                        {
-                            fmt::format_to(m_sql," on duplicate key update " );
-                            fmt::format_to(m_sql,fmt::to_string(m_upsetDupSql));
-                        }
-                        return *this;
-                    }
-
-
-
                 template <typename ... Args>
                     DBQuery & select(const Args & ... args)
                     {
@@ -480,47 +290,6 @@ namespace gdp
                                 }
                             }
                             fmt::format_to(m_sql,format.str(),args...);
-                        }
-                        else
-                        {
-
-                            fmt::format_to(m_sql," * ");
-                        }
-                        return *this;
-                    }
-
-                    DBQuery & to_lua_select(sol::variadic_args args)
-                    {
-                        clear();
-                        int argLen = args.size();
-
-                        fmt::format_to(m_sql,"select ");
-                        if (argLen > 0)
-                        {
-                            int i = 0;
-                            for ( auto v : args)
-                            {
-                                std::stringstream format;
-                                if (i < argLen -1 )
-                                {
-                                    format<< " {}, ";
-                                }
-                                else {
-                                    format<< " {} ";
-                                }
-
-                                ++i;
-                                auto type = v.get_type();
-                                switch (type) 
-                                {
-	                                case sol::type::string:
-                                        if (v.is<std::string>())
-                                        {
-                                            fmt::format_to(m_sql, format.str(), v.as<std::string>());
-                                        }
-                                        break;
-			                    }
-                            }
                         }
                         else
                         {
@@ -588,36 +357,6 @@ namespace gdp
                     DBQuery & where(const std::string & key , const std::string & op, const T   & term)
                     {
                         std::string termStr = fmt::format(" {} {} {} ", key , op, printarg(term));
-                        this->_where(termStr);
-                        return *this;
-                    }
-
-                    DBQuery & to_lua_where(const std::string & key , const std::string & op, sol::variadic_args args)
-                    {
-                        auto type = args[0].get_type();
-                        std::string termStr;
-                        switch (type) 
-                        {
-	                        case sol::type::string:
-                                if (args[0].is<std::string>())
-                                {
-                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args[0].as<std::string>()));
-                                }
-                                break;
-                            case sol::type::number:
-                                if (args[0].is<int32_t>())
-                                {
-                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args[0].as<int32_t>()));
-                                }
-                                else if (args[0].is<double>())
-                                {
-                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args[0].as<double>()));
-                                }
-                                break;
-                            default:
-                                break;
-			            }
-
                         this->_where(termStr);
                         return *this;
                     }
@@ -788,6 +527,267 @@ namespace gdp
                     set_item_count = 0;
                     where_levels = 0;
                 }
+            
+            // lua bind dbquery functions
+            public:
+                DBQuery & to_lua_insert_into(const std::string & tbName, sol::variadic_args args)
+                    {
+                        clear();
+                        int argLen = args.size();
+                        m_table = tbName;
+                        fmt::format_to(m_sql,"insert into {} " ,tbName);
+                        if (argLen > 0 )
+                        {
+                            fmt::format_to(m_sql, " ( ") ;
+                        }
+
+                        int i = 0;
+                        for ( auto v : args)
+                        {
+                            std::stringstream format;
+                            if (i < argLen -1 ) {
+                                format<< " {}, ";
+                            }
+                            else {
+                                format<< " {} ";
+                            }
+
+                            ++i;
+                            auto type = v.get_type();
+                            switch (type) 
+                            {
+	                            case sol::type::string:
+                                    if (v.is<std::string>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), v.as<std::string>());
+                                    }
+                                    break;
+			                }
+                        }
+
+                        if (argLen > 0)
+                        {
+                            fmt::format_to(m_sql," ) " );
+                        }
+                        return *this;
+                    }
+
+                    DBQuery & to_lua_insert_or_update(const std::string & tbName , sol::variadic_args args)
+                    {
+                        clear();
+                        m_bUpset = true;
+                        int argLen = args.size();
+                        m_table = tbName;
+                        fmt::format_to(m_sql,"insert into {} " ,tbName);
+                        if (argLen > 0 )
+                        {
+                            fmt::format_to(m_sql, " ( ") ;
+                        }
+                     
+                        int i = 0;
+                        for ( auto v : args)
+                        {
+                            std::stringstream format;
+                            std::stringstream duplicate;
+
+                            if (i < argLen -1 ) {
+                                format<< " {}, ";
+                                duplicate<<" {" << i << "}=values({" << i << "}),";
+                            }
+                            else {
+                                format<< " {} ";
+                                duplicate<<" {" << i << "}=values({" << i << "})";
+                            }
+
+                            ++i;
+                            auto type = v.get_type();
+                            switch (type) 
+                            {
+	                            case sol::type::string:
+                                    if (v.is<std::string>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), v.as<std::string>());
+                                        fmt::format_to(m_upsetDupSql, duplicate.str(), v.as<std::string>());
+                                    }
+                                    break;
+			                }
+                        }
+
+                        if (argLen > 0)
+                        {
+                            fmt::format_to(m_sql," ) " );
+                        }
+                        return *this;
+                    }
+
+                    DBQuery & to_lua_update(const std::string & tbName, sol::variadic_args args)
+                    {
+                        clear();
+                        int argLen = args.size();
+                        m_table = tbName ;
+                        fmt::format_to(m_sql," update {} ",tbName);
+
+                        int i = 0;
+                        for ( auto v : args)
+                        {
+                            std::stringstream format;
+                            if (i < argLen -1 ) {
+                                format<< " {}, ";
+                            }
+                            else {
+                                format<< " {} ";
+                            }
+
+                            ++i;
+                            auto type = v.get_type();
+                            switch (type) 
+                            {
+	                            case sol::type::string:
+                                    if (v.is<std::string>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), v.as<std::string>());
+                                    }
+                                    break;
+                                case sol::type::number:
+                                    if (v.is<int32_t>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), v.as<int32_t>());
+                                    }
+                                    else if (v.is<double>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), v.as<double>());
+                                    }
+                                    break;
+                                default:
+                                    break;
+			                }
+                        }
+
+                        dlog("sql: %s",fmt::to_string(m_sql).c_str());
+                        return *this;
+                    }
+
+                    DBQuery & to_lua_values(sol::variadic_args args)
+                    {
+                        int argLen = args.size();
+                        fmt::format_to(m_sql," values ( ");
+
+                        int i = 0;
+                        for ( auto v : args)
+                        {
+                            std::stringstream format;
+                            if (i < argLen -1 ) {
+                                format<< " {}, ";
+                            }
+                            else {
+                                format<< " {} ";
+                            }
+
+                            ++i;
+                            auto type = v.get_type();
+                            switch (type) 
+                            {
+	                            case sol::type::string:
+                                    if (v.is<std::string>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), printarg(v.as<std::string>()));
+                                    }
+                                    break;
+                                case sol::type::number:
+                                    if (v.is<int32_t>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), printarg(v.as<int32_t>()));
+                                    }
+                                    else if (v.is<double>())
+                                    {
+                                        fmt::format_to(m_sql, format.str(), printarg(v.as<double>()));
+                                    }
+                                    break;
+                                default:
+                                    break;
+			                }
+                        }
+
+                        fmt::format_to(m_sql," ) " );
+
+                        if(m_bUpset)
+                        {
+                            fmt::format_to(m_sql," on duplicate key update " );
+                            fmt::format_to(m_sql,fmt::to_string(m_upsetDupSql));
+                        }
+                        return *this;
+                    }
+
+                    DBQuery & to_lua_select(sol::variadic_args args)
+                    {
+                        clear();
+                        int argLen = args.size();
+
+                        fmt::format_to(m_sql,"select ");
+                        if (argLen > 0)
+                        {
+                            int i = 0;
+                            for ( auto v : args)
+                            {
+                                std::stringstream format;
+                                if (i < argLen -1 )
+                                {
+                                    format<< " {}, ";
+                                }
+                                else {
+                                    format<< " {} ";
+                                }
+
+                                ++i;
+                                auto type = v.get_type();
+                                switch (type) 
+                                {
+	                                case sol::type::string:
+                                        if (v.is<std::string>())
+                                        {
+                                            fmt::format_to(m_sql, format.str(), v.as<std::string>());
+                                        }
+                                        break;
+			                    }
+                            }
+                        }
+                        else
+                        {
+
+                            fmt::format_to(m_sql," * ");
+                        }
+                        return *this;
+                    }
+
+                    DBQuery & to_lua_where(const std::string & key , const std::string & op, sol::variadic_args args)
+                    {
+                        auto type = args[0].get_type();
+                        std::string termStr;
+                        switch (type) 
+                        {
+	                        case sol::type::string:
+                                if (args[0].is<std::string>())
+                                {
+                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args[0].as<std::string>()));
+                                }
+                                break;
+                            case sol::type::number:
+                                if (args[0].is<int32_t>())
+                                {
+                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args[0].as<int32_t>()));
+                                }
+                                else if (args[0].is<double>())
+                                {
+                                    termStr = fmt::format(" {} {} {} ", key , op, printarg(args[0].as<double>()));
+                                }
+                                break;
+                            default:
+                                break;
+			            }
+
+                        this->_where(termStr);
+                        return *this;
+                    }
 
             private:
 
